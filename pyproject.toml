@@ -1,0 +1,10 @@
+[project]
+name = "nd901-agentic-ai-with-langchain-and-langgraph-project-3"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ruff>=0.14.10",
+    "ty>=0.0.8",
+]
