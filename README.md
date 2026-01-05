@@ -3,20 +3,24 @@
 # Project 3: Autonomous Knowledge Agent
 
 
+
 ## Prerequisites
 
 This project is set up on top of the python tooling of [Astral.sh](https://astral.sh/), escpecially their package manager `uv`. If you have it already installed you can set up this project and install all dependencies by running the following command inside the root folder.
 
-```
+```bash
 uv sync
 ``` 
+
+## Agents
 
 
 ``` mermaid
 ---
 config:
-  flowchart:
-    curve: linear
+    theme: dark
+    flowchart:
+        curve: linear
 ---
 
 graph TD;
@@ -33,21 +37,48 @@ graph TD;
     subgraph Enrichment
         direction TB
         
-        in([in])
+        Enrichment__in([start])
         Sentiment
         Urgency
-        out([out])
+        Metadata
+        Enrichment__out([end])
 
-        in --> Sentiment;
-        in --> Urgency;
+        Enrichment__in --> Sentiment;
+        Enrichment__in --> Urgency;
+        Enrichment__in --> Metadata;
 
-        Sentiment --> out;
-        Urgency --> out;
+        Sentiment --> Enrichment__out;
+        Urgency --> Enrichment__out;
+        Metadata --> Enrichment__out;
 
     end
     
     subgraph Supervisor
         direction TB
+
+        Supervisor__in([start])
+        Esclation
+        Booking
+        Browsing
+        Cancelation
+        HelpDesk
+        Supervisor__out([end])
+
+
+        Supervisor__in -.-> Supervisor__out;
+        Supervisor__in -.-> Esclation;
+        Supervisor__in -.-> Booking;
+        Supervisor__in -.-> Browsing;
+        Supervisor__in -.-> Cancelation;
+        Supervisor__in -.-> HelpDesk;
+
+        Esclation --> Supervisor__in;
+        Booking --> Supervisor__in;
+        Browsing --> Supervisor__in;
+        Cancelation --> Supervisor__in;
+        HelpDesk --> Supervisor__in;
+
+
     end
 
     subgraph Memomrize
@@ -65,8 +96,8 @@ graph TD;
 	Supervisor --> Memomrize;
     Memomrize --> __end__;
 
-	classDef default fill:#f2f0ff,line-height:1.2
-	classDef first fill-opacity:0
-	classDef last fill:#bfb6fc
+%%	classDef default fill:#f2f0ff,line-height:1.2
+%%	classDef first fill-opacity:0
+%%	classDef last fill:#bfb6fc
 
 ```
