@@ -1,33 +1,31 @@
 [project]
 name = "nd901-agentic-ai-with-langchain-and-langgraph-project-3"
 version = "0.1.0"
-description = "Add your description here"
+description = "Agentic AI with LangGraph and MCP"
 readme = "README.md"
 requires-python = ">=3.12"
+
 dependencies = [
-  "langchain>=0.3,<0.4",
-  "langchain-core>=0.3,<0.4",
-  "langchain-openai>=0.3,<0.4",
+  "langchain>=1.0.0",
+  "langchain-core>=1.0.0",
+  "langchain-openai>=0.3.0",
+  "langgraph>=0.5.20",
+  "fastmcp>=2.10.6",
+  "langchain-mcp-adapters>=0.2.1",
+  "langchain-community>=0.3.0",
+  "langchain-chroma>=0.2.6",
+  "chromadb>=1.4.0",
+  "tavily>=1.1.0",
+  "pandas>=2.3.0",
+  "pypdf>=6.4.0",
+  "ragas>=0.3.9",
+  "mlflow>=3.6.0",
+  "sqlalchemy>=2.0.41",
+  "httpx>=0.28.1",
   "python-dotenv>=1.1.1",
+  "jupyter>=1.0.0",
+  "ipykernel>=6.30.0",
   "rich>=13",
   "ruff>=0.14.10",
   "ty>=0.0.8",
-  "jupyter>=1.0",
-  "grandalf>=0.8",
-  "langgraph>=0.5.4",
-  "tavily>=1.1.0",
-  "pandas>=2.3.3",
-  "langchain-chroma>=0.2.6",
-  "langchain-community>=0.3.31",
-  "pypdf>=6.4.0",
-  "mlflow>=3.6.0",
-  "ragas>=0.3.9",
-  "langmem>=0.0.30",
-  "pyppeteer>=2.0.0",
-  "langgraph-supervisor>=0.0.28",
-  "fastmcp>=2.10.6",
-  "httpx>=0.28.1",
-  "ipykernel>=6.30.0",
-  "sqlalchemy>=2.0.41",
-  "chromadb>=1.4.0",
 ]
