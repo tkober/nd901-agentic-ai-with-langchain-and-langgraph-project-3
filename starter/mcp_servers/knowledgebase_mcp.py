@@ -2,11 +2,9 @@ from sqlalchemy import select, create_engine
 from sqlalchemy.orm import Session
 from starter.data.models.cultpass import Experience
 from starter.data.models.udahub import Knowledge
-from chromadb import ClientAPI
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
-from typing import Literal
 
 import chromadb
 import os
