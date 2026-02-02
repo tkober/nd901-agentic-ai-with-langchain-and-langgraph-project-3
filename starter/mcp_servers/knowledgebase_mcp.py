@@ -34,7 +34,7 @@ def get_udahub_knowledge(database_url: str):
         return entries
 
 
-mcp = FastMCP("Knowledgebase")
+mcp = FastMCP("UdaHub Knowledgebase MCP Server")
 
 
 @mcp.resource(
