@@ -25,6 +25,7 @@ class GetUserArguments(BaseModel):
     name="get_cultpass_user",
     description="Retrieve user details from the Cultpass database.",
     tags=set(["cultpass", "user", "details"]),
+    meta={"author": "cultpass", "version": "1.0"},
 )
 def get_cultpass_user(user: GetUserArguments) -> dict | None:
     engine = create_engine(CULTPASS_DB_PATH)
@@ -63,6 +64,7 @@ def get_cultpass_user(user: GetUserArguments) -> dict | None:
     name="get_cultpass_reservations",
     description="Retrieve reservations for a user from the Cultpass database.",
     tags=set(["cultpass", "reservations", "user"]),
+    meta={"author": "cultpass", "version": "1.0"},
 )
 def get_reservations(user: GetUserArguments) -> list[dict]:
     engine = create_engine(CULTPASS_DB_PATH)
@@ -93,6 +95,7 @@ class CancelReservationArguments(BaseModel):
     name="cancel_cultpass_reservation",
     description="Cancel a reservation for a user in the Cultpass database.",
     tags=set(["cultpass", "reservations", "cancel"]),
+    meta={"author": "cultpass", "version": "1.0"},
 )
 def cancel_reservation(reservation: CancelReservationArguments) -> dict:
     engine = create_engine(CULTPASS_DB_PATH)
@@ -128,6 +131,7 @@ class MakeReservationArguments(BaseModel):
     name="make_cultpass_reservation",
     description="Make a reservation for a user in the Cultpass database.",
     tags=set(["cultpass", "reservations", "make"]),
+    meta={"author": "cultpass", "version": "1.0"},
 )
 def make_reservation(reservation: MakeReservationArguments) -> dict:
     engine = create_engine(CULTPASS_DB_PATH)
@@ -202,6 +206,7 @@ class GetExperienceArguments(BaseModel):
     name="get_cultpass_experience",
     description="Retrieve experience details from the Cultpass database.",
     tags=set(["cultpass", "experience", "details"]),
+    meta={"author": "cultpass", "version": "1.0"},
 )
 def get_experience(experience: GetExperienceArguments) -> dict | None:
     engine = create_engine(CULTPASS_DB_PATH)

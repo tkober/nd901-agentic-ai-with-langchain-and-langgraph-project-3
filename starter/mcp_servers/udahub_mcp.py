@@ -28,6 +28,7 @@ class CreateUdaHubUserArguments(BaseModel):
     name="create_udahub_user",
     description="Create a new user in the UdaHub database.",
     tags=set(["udahub", "user", "create"]),
+    meta={"author": "UDAHub", "version": "1.0"},
 )
 def create_udahhub_user(user: CreateUdaHubUserArguments) -> dict:
     engine = create_engine(UDAHUB_DB_PATH)
@@ -58,6 +59,7 @@ class GetUdaHubUserArguments(BaseModel):
     name="get_udahub_user",
     description="Retrieve user details from the UdaHub database.",
     tags=set(["udahub", "user", "details"]),
+    meta={"author": "UDAHub", "version": "1.0"},
 )
 def get_udahub_user(user: GetUdaHubUserArguments) -> dict | None:
     engine = create_engine(UDAHUB_DB_PATH)
@@ -85,6 +87,7 @@ class GetUdaHubAccountArguments(BaseModel):
     name="get_udahub_account",
     description="Retrieve account details from the UdaHub database.",
     tags=set(["udahub", "account", "details"]),
+    meta={"author": "UDAHub", "version": "1.0"},
 )
 def get_udahub_account(account: GetUdaHubAccountArguments) -> dict | None:
     engine = create_engine(UDAHUB_DB_PATH)

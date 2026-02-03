@@ -44,6 +44,7 @@ mcp = FastMCP("UdaHub Knowledgebase MCP Server")
     description="Configuration for the knowledgebase.",
     mime_type="application/json",
     tags={"monitoring", "config"},
+    meta={"author": "UDAHub Knowledge Base", "version": "1.0"},
 )
 def get_knowledgebase_config():
     return {
@@ -57,6 +58,7 @@ def get_knowledgebase_config():
     name="sync_cultpass_experiences",
     description="Synchronize the Cultpass experiences into the knowledgebase.",
     tags=set(["cultpass", "sync", "experiences"]),
+    meta={"author": "UDAHub Knowledge Base", "version": "1.0"},
 )
 def sync_cultpass_experiences():
     chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
@@ -82,6 +84,7 @@ def sync_cultpass_experiences():
     name="sync_udahub_knowledgebase",
     description="Synchronize the UdaHub knowledge entries into the knowledgebase.",
     tags=set(["udahub", "sync"]),
+    meta={"author": "UDAHub Knowledge Base", "version": "1.0"},
 )
 def sync_udahub_knowledgebase():
     chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
@@ -138,6 +141,7 @@ class UdaHubKnowledgeBaseQuery(KnowledgeBaseQuery):
     name="query_udahub_knowledgebase",
     description="Query the UdaHub knowledgebase for learnings related to a given customer.",
     tags=set(["cultpass", "query", "knowledge"]),
+    meta={"author": "UDAHub Knowledge Base", "version": "1.0"},
 )
 def query_udahub_knowledgebase(query: UdaHubKnowledgeBaseQuery) -> list[dict] | dict:
     chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
@@ -173,6 +177,7 @@ class CultpassExperience(KnowledgeBaseEntry):
     name="query_cultpass_experiences",
     description="Query the Cultpass experiences knowledgebase.",
     tags=set(["cultpass", "query", "knowledge", "experiences"]),
+    meta={"author": "UDAHub Knowledge Base", "version": "1.0"},
 )
 def query_cultpass_experiences(query: KnowledgeBaseQuery) -> list[dict] | dict:
     chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
