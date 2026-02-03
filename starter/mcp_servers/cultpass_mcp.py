@@ -14,6 +14,7 @@ mcp = FastMCP("Cultpass MCP Server")
 CULTPASS_DB_PATH = os.getenv(
     "CULTPASS_DB_PATH", "sqlite:///starter/data/external/cultpass.db"
 )
+CULTPASS_MCP_PORT = int(os.getenv("CULTPASS_MCP_PORT", "8003"))
 
 
 class GetUserArguments(BaseModel):
@@ -226,4 +227,4 @@ def get_experience(experience: GetExperienceArguments) -> dict | None:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="http")
+    mcp.run(transport="http", port=CULTPASS_MCP_PORT)

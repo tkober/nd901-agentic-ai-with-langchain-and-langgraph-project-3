@@ -16,6 +16,7 @@ CULTPASS_DB_PATH = os.getenv(
     "CULTPASS_DB_PATH", "sqlite:///starter/data/external/cultpass.db"
 )
 UDAHUB_DB_PATH = os.getenv("UDAHUB_DB_PATH", "sqlite:///starter/data/core/udahub.db")
+KNOWLEDGE_BASE_MCP_PORT = int(os.getenv("KNOWLEDGE_BASE_MCP_PORT", "8002"))
 
 
 def get_cultpass_experiences(database_url: str):
@@ -196,4 +197,4 @@ def query_cultpass_experiences(query: KnowledgeBaseQuery) -> list[dict] | dict:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="http")
+    mcp.run(transport="http", port=KNOWLEDGE_BASE_MCP_PORT)
