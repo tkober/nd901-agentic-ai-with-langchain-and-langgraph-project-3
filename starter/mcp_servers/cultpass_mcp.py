@@ -24,8 +24,13 @@ class GetUserArguments(BaseModel):
 @mcp.tool(
     name="get_cultpass_user",
     description="Retrieve user details from the Cultpass database.",
-    tags=set(["cultpass", "user", "details"]),
+    tags=set(["user", "details"]),
     meta={"author": "cultpass", "version": "1.0"},
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+    },
 )
 def get_cultpass_user(user: GetUserArguments) -> dict | None:
     engine = create_engine(CULTPASS_DB_PATH)
@@ -63,8 +68,13 @@ def get_cultpass_user(user: GetUserArguments) -> dict | None:
 @mcp.tool(
     name="get_cultpass_reservations",
     description="Retrieve reservations for a user from the Cultpass database.",
-    tags=set(["cultpass", "reservations", "user"]),
+    tags=set(["reservations", "details"]),
     meta={"author": "cultpass", "version": "1.0"},
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+    },
 )
 def get_reservations(user: GetUserArguments) -> list[dict]:
     engine = create_engine(CULTPASS_DB_PATH)
@@ -94,8 +104,13 @@ class CancelReservationArguments(BaseModel):
 @mcp.tool(
     name="cancel_cultpass_reservation",
     description="Cancel a reservation for a user in the Cultpass database.",
-    tags=set(["cultpass", "reservations", "cancel"]),
+    tags=set(["reservations", "cancel"]),
     meta={"author": "cultpass", "version": "1.0"},
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": True,
+        "idempotentHint": False,
+    },
 )
 def cancel_reservation(reservation: CancelReservationArguments) -> dict:
     engine = create_engine(CULTPASS_DB_PATH)
@@ -130,8 +145,13 @@ class MakeReservationArguments(BaseModel):
 @mcp.tool(
     name="make_cultpass_reservation",
     description="Make a reservation for a user in the Cultpass database.",
-    tags=set(["cultpass", "reservations", "make"]),
+    tags=set(["reservations", "create"]),
     meta={"author": "cultpass", "version": "1.0"},
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "idempotentHint": False,
+    },
 )
 def make_reservation(reservation: MakeReservationArguments) -> dict:
     engine = create_engine(CULTPASS_DB_PATH)
@@ -205,8 +225,13 @@ class GetExperienceArguments(BaseModel):
 @mcp.tool(
     name="get_cultpass_experience",
     description="Retrieve experience details from the Cultpass database.",
-    tags=set(["cultpass", "experience", "details"]),
+    tags=set(["experience", "details"]),
     meta={"author": "cultpass", "version": "1.0"},
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+    },
 )
 def get_experience(experience: GetExperienceArguments) -> dict | None:
     engine = create_engine(CULTPASS_DB_PATH)
