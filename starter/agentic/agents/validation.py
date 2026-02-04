@@ -32,7 +32,7 @@ class UserValidationResult(BaseModel):
 
 
 async def validate_user(
-    llm: BaseChatModel, tools: list, account_id: str, user_id: str
+    llm: BaseChatModel, tools: list, account_id: str, external_user_id: str
 ) -> UserValidationResult:
     agent = create_agent(
         model=llm,
@@ -41,7 +41,7 @@ async def validate_user(
         It has already been checked, that {account_id} is a legit customer of UDA Hub. 
         You have tools for accessing both UDA Hubs system and the system of the customer. 
 
-        The user with the external user with user_id='{user_id}' needs to be validated using the following steps:
+        The user with the external user with user_id='{external_user_id}' needs to be validated using the following steps:
 
         Check with the customer whether with user exists. If you cannot find a user in the customers system it is an invalid user and you terminate here.
         If you find a user check with UDA Hub whether there is a user. If you find one terminate here. If not create a new one.
@@ -61,7 +61,7 @@ async def validate_user(
     except GraphRecursionError:
         return UserValidationResult(
             account_id=account_id,
-            external_user_id=user_id,
+            external_user_id=external_user_id,
             uda_hub_user_created=False,
             validation_successfull=False,
             error_message="An internal error occurred.",
@@ -74,8 +74,9 @@ async def validation_agent(state: UdaHubState, config: RunnableConfig) -> UdaHub
 
     tools = config.get("configurable", {}).get("mcp_tools", [])
     llm = config.get("configurable", {}).get("llm")
-    account_id = state.get("user", {}).get("account_id", "")
-    user_id = state.get("user", {}).get("user_id", "")
+    user = state.get("user", {})
+    account_id = user.get("account_id", "")
+    external_user_id = user.get("external_user_id", "")
 
     # Check that the provided account id belongs to a customer of UDA Hub
     account_lookup_tool = McpToolFilter(tools).by_name("get_udahub_account").get_first()
@@ -101,7 +102,10 @@ async def validation_agent(state: UdaHubState, config: RunnableConfig) -> UdaHub
         .get_all()
     )
     response = await validate_user(
-        llm=llm, tools=validation_tools, account_id=account_id, user_id=user_id
+        llm=llm,
+        tools=validation_tools,
+        account_id=account_id,
+        external_user_id=external_user_id,
     )
 
     if not response.validation_successfull:
@@ -131,4 +135,13 @@ async def validation_agent(state: UdaHubState, config: RunnableConfig) -> UdaHub
             )
         )
 
-    return {"messages": messages, "is_validated": True}
+    return {
+        "messages": messages,
+        "is_validated": True,
+        "user": {
+            "account_id": account_id,
+            "external_user_id": external_user_id,
+            "udahub_user_id": f"{response.uda_hub_user_id}",
+            "full_name": f"{response.full_name}",
+        },
+    }

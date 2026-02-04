@@ -98,7 +98,7 @@ class UdaHubAgent:
             messages=[],
             user=UserContext(
                 account_id=account_id,
-                user_id=exteranal_user_id,
+                external_user_id=exteranal_user_id,
             ),
         )
         config = {
@@ -114,5 +114,5 @@ class UdaHubAgent:
 
 if __name__ == "__main__":
     agent = UdaHubAgent()
-    asyncio.run(agent.start_chat("cultpass", "f556c0", thread_id="test"))
-    asyncio.run(agent.start_chat("cultpass", "f556c0", thread_id="test"))
+    for i in range(1):
+        asyncio.run(agent.start_chat("cultpass", "f556c0", thread_id="test"))

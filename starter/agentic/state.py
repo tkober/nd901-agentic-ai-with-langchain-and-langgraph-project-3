@@ -6,7 +6,9 @@ TaskStatus = Literal["pending", "in_progress", "", "completed", "failed"]
 
 class UserContext(TypedDict, total=False):
     account_id: str
-    user_id: str
+    external_user_id: str
+    udahub_user_id: str
+    full_name: str
 
 
 class TaskContext(TypedDict, total=False):
@@ -20,4 +22,4 @@ class UdaHubState(MessagesState, total=False):
     user: UserContext
     task: TaskContext
     is_validated: bool
-    enriched: bool
+    is_enriched: bool
