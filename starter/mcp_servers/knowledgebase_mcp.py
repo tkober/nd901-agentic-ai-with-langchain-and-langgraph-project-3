@@ -11,6 +11,7 @@ import os
 
 load_dotenv()
 
+
 CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "./chroma_data")
 CULTPASS_DB_PATH = os.getenv(
     "CULTPASS_DB_PATH", "sqlite:///starter/data/external/cultpass.db"

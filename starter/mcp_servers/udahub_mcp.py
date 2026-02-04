@@ -1,7 +1,7 @@
 from sqlalchemy import select, create_engine
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session, selectinload
-from starter.data.models.udahub import User, Account, Ticket
+from sqlalchemy.orm import Session
+from starter.data.models.udahub import User, Account
 from fastmcp import FastMCP
 from fastmcp.utilities.logging import get_logger
 from pydantic import BaseModel, Field
@@ -18,6 +18,16 @@ mcp = FastMCP("UDA Hub MCP Server")
 
 UDAHUB_DB_PATH = os.getenv("UDAHUB_DB_PATH", "sqlite:///starter/data/core/udahub.db")
 UDAHUB_MCP_PORT = int(os.getenv("CULTPASS_MCP_PORT", "8001"))
+
+
+def yield_error(error_message: str) -> dict:
+    logger.debug(error_message)
+    return {"error": error_message}
+
+
+def yield_message(message: str) -> dict:
+    logger.debug(message)
+    return {"message": message}
 
 
 class CreateUdaHubUserArguments(BaseModel):
@@ -64,9 +74,9 @@ def create_udahhub_user(user: CreateUdaHubUserArguments) -> dict:
 
     except IntegrityError as e:
         logger.error(f"Integrity error creating UdaHub user: {e}")
-        return {
-            "error": "User with the given external_user_id and account_id already exists."
-        }
+        return yield_error(
+            "User with the given external_user_id and account_id already exists."
+        )
 
 
 class GetUdaHubUserArguments(BaseModel):

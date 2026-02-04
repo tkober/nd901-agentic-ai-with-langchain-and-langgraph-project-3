@@ -2,6 +2,7 @@ from sqlalchemy import select, create_engine
 from sqlalchemy.orm import Session, selectinload
 from starter.data.models.cultpass import User, Reservation, Experience
 from fastmcp import FastMCP
+from fastmcp.utilities.logging import get_logger
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from datetime import datetime
@@ -10,6 +11,7 @@ from typing import Optional
 import os
 
 load_dotenv()
+logger = get_logger("udahub_mcp")
 
 mcp = FastMCP("Cultpass MCP Server")
 
@@ -25,6 +27,16 @@ class GetUserArguments(BaseModel):
 
 def checked_date(dt: Optional[datetime]) -> Optional[str]:
     return dt.isoformat() if dt else None
+
+
+def yield_error(error_message: str) -> dict:
+    logger.debug(error_message)
+    return {"error": error_message}
+
+
+def yield_message(message: str) -> dict:
+    logger.debug(message)
+    return {"message": message}
 
 
 @mcp.tool(
@@ -48,7 +60,8 @@ def get_cultpass_user(user: GetUserArguments) -> dict | None:
         )
         result = session.execute(statement).scalar_one_or_none()
         if result is None:
-            return {"error": "This user does not exist."}
+            logger.debug(f"No Cultpass user found for user_id {user.user_id}")
+            return None
 
         result = {
             "user_id": result.user_id,
@@ -69,7 +82,7 @@ def get_cultpass_user(user: GetUserArguments) -> dict | None:
                 "updated_at": result.subscription.updated_at.isoformat(),
             },
         }
-        print(result)
+        logger.debug(f"Retrieved Cultpass user: {result}")
         return result
 
 
@@ -101,6 +114,8 @@ def get_reservations(user: GetUserArguments) -> list[dict]:
                     "updated_at": result.updated_at.isoformat(),
                 }
             )
+
+        logger.debug(f"Retrieved reservations: {reservations}")
         return reservations
 
 
@@ -133,16 +148,16 @@ def cancel_reservation(reservation: CancelReservationArguments) -> dict:
         )
         result = session.execute(statement).scalar_one_or_none()
         if result is None:
-            return {"error": "Reservation not found."}
+            return yield_error("Reservation not found.")
 
         if result.status == "cancelled":
-            return {"error": "Reservation is already cancelled."}
+            return yield_error("Reservation is already cancelled.")
 
         result.status = "cancelled"
         result.experience.slots_available += 1
         session.commit()
 
-    return {"message": "Reservation cancelled successfully."}
+    return yield_message("Reservation cancelled successfully.")
 
 
 class MakeReservationArguments(BaseModel):
@@ -171,13 +186,13 @@ def make_reservation(reservation: MakeReservationArguments) -> dict:
         )
         user = session.execute(user_statement).scalar_one_or_none()
         if user is None:
-            return {"error": "User not found."}
+            return yield_error("User not found.")
 
         if user.is_blocked:
-            return {"error": "User is blocked from making reservations."}
+            return yield_error("User is blocked from making reservations.")
 
         if user.subscription is None or user.subscription.status != "active":
-            return {"error": "User does not have an active subscription."}
+            return yield_error("User does not have an active subscription.")
 
         reservation_statement = select(Reservation).where(
             Reservation.user_id == reservation.user_id,
@@ -188,7 +203,7 @@ def make_reservation(reservation: MakeReservationArguments) -> dict:
             reservation_statement
         ).scalar_one_or_none()
         if existing_reservation is not None:
-            return {"error": "User already has a reservation for this experience."}
+            return yield_error("User already has a reservation for this experience.")
 
         experience_statement = select(Experience).where(
             Experience.experience_id == reservation.experience_id
@@ -196,15 +211,15 @@ def make_reservation(reservation: MakeReservationArguments) -> dict:
         experience = session.execute(experience_statement).scalar_one_or_none()
 
         if experience is None:
-            return {"error": "Experience not found."}
+            return yield_error("Experience not found.")
 
         if experience.slots_available <= 0:
-            return {"error": "No slots available for this experience."}
+            return yield_error("No slots available for this experience.")
 
         if experience.is_premium and user.subscription.tier != "premium":
-            return {
-                "error": "Experience is premium and user does not have a premium subscription."
-            }
+            return yield_error(
+                "Experience is premium and user does not have a premium subscription."
+            )
 
         new_reservation = Reservation(
             reservation_id=os.urandom(8).hex(),
