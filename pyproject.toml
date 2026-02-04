@@ -28,4 +28,5 @@ dependencies = [
   "rich>=13",
   "ruff>=0.14.10",
   "ty>=0.0.8",
+  "langsmith>=0.6.1",
 ]
