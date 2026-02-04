@@ -1,9 +1,11 @@
+from anyio.abc import TaskStatus
 from typing import Literal, Protocol, Optional, Sequence
 from langgraph.graph import START, END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_mcp_adapters.client import MultiServerMCPClient, StreamableHttpConnection
-from starter.agentic.state import UdaHubState, UserContext, TaskContext
+from starter.agentic.state import UdaHubState, UserContext
 from starter.agentic.agents.validation import validation_agent
+from starter.agentic.agents.enrichment import enrichment_agent
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 
@@ -44,23 +46,39 @@ def enrichment_agent(state: UdaHubState) -> UdaHubState:
 
 
 class UdaHubAgent:
-    def __build_graph(self):
+    def _build_graph(self):
         graph = StateGraph(UdaHubState)
 
         # Define Nodes
-        graph.add_node(validation_agent, name="validation_agent")
-        # graph.add_node(enrichment_agent, name="enrichment_agent")
-
-        # Define Entry Point
-        graph.set_entry_point("validation_agent")
+        graph.add_node(
+            node="validation",
+            action=validation_agent,
+        )
+        graph.add_node(
+            node="enrichment",
+            action=enrichment_agent,
+        )
 
         # Define Edges
-        # graph.add_conditional_edges()
+        graph.add_edge(START, "validation")
+        graph.add_conditional_edges(
+            source="validation",
+            path=self._after_validation,
+            path_map={
+                "enrich": "enrichment",
+                "end": END,
+            },
+        )
 
         checkpointer = MemorySaver()
         return graph.compile(checkpointer=checkpointer)
 
-    def __build_mcp_client(self):
+    def _after_validation(self, state: UdaHubState) -> str:
+        if state.get("task", {}).get("status") == "failed":
+            return "end"
+        return "enrich"
+
+    def _build_mcp_client(self):
         return MultiServerMCPClient(
             {
                 "udahub": StreamableHttpConnection(
@@ -76,8 +94,8 @@ class UdaHubAgent:
         )
 
     def __init__(self):
-        self.graph = self.__build_graph()
-        self.mcp_client = self.__build_mcp_client()
+        self.graph = self._build_graph()
+        self.mcp_client = self._build_mcp_client()
         self.llm = ChatOpenAI(
             model="gpt-4o-mini",
             temperature=0.0,
@@ -114,5 +132,5 @@ class UdaHubAgent:
 
 if __name__ == "__main__":
     agent = UdaHubAgent()
-    for i in range(1):
+    for i in range(2):
         asyncio.run(agent.start_chat("cultpass", "f556c0", thread_id="test"))
