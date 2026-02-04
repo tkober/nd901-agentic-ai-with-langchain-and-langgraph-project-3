@@ -63,9 +63,4 @@ class McpToolFilter:
         return self.tools[0] if self.tools else None
 
     def __repr__(self):
-        return "\n".join(
-            [
-                f"{tool.name} - {tool.description} - {tool.metadata}"
-                for tool in self.tools
-            ]
-        )
+        return "\n".join([f"{tool.name} - {tool.description}" for tool in self.tools])
