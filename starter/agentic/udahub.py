@@ -1,10 +1,17 @@
 from typing import Literal, Protocol, Optional, Sequence
-from langgraph.graph.message import MessagesState
-from langgraph.types import Command
 from langgraph.graph import START, END, StateGraph
-from langgraph.types import RunnableConfig
 from langgraph.checkpoint.memory import MemorySaver
-from langchain_core.messages import HumanMessage
+from langchain_mcp_adapters.client import MultiServerMCPClient, StreamableHttpConnection
+from starter.agentic.state import UdaHubState, UserContext, TaskContext
+from starter.agentic.agents.validation import validation_agent
+from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
+
+import asyncio
+import uuid
+import os
+
+load_dotenv()
 
 
 class UserInterface(Protocol):
@@ -32,68 +39,80 @@ class ConsoleUserInterface:
         return msg
 
 
-class UdaHubState(MessagesState):
-    enriched: bool
-
-
-def validation_agent(
-    state: UdaHubState,
-) -> Command[Literal["enrichment_agent", "supervisor_agent", END]]:
-    print("Called validation_agent")
-    if state["enriched"]:
-        return Command(goto="supervisor_agent")
-
-    return Command(goto="enrichment_agent")
-
-
-def enrichment_agent(state: UdaHubState) -> Command[Literal["supervisor_agent"]]:
+def enrichment_agent(state: UdaHubState) -> UdaHubState:
     print("Called enrichment_agent")
-    return Command(
-        goto="supervisor_agent",
-        update={"enriched": True},
-    )
+    return state
 
 
-def supervisor_agent(
-    state: UdaHubState, config: RunnableConfig
-) -> Command[Literal["memorization_agent"]]:
-    settings = config.get("configurable", {})
-    ui: UserInterface = settings.get("user_interface") or ConsoleUserInterface()
+class UdaHubAgent:
+    def __build_graph(self):
+        graph = StateGraph(UdaHubState)
 
-    messages: list[HumanMessage] = []
+        # Define Nodes
+        graph.add_node(validation_agent, name="validation_agent")
+        # graph.add_node(enrichment_agent, name="enrichment_agent")
 
-    message = ui.next_message()
-    while message is not None:
-        messages.append(HumanMessage(content=message))
-        message = ui.next_message()
+        # Define Entry Point
+        graph.set_entry_point("validation_agent")
 
-    print("Called supervisor_agent")
-    return Command(
-        goto="memorization_agent",
-        update={
-            "messages": messages,
-        },
-    )
+        # Define Edges
+        # graph.add_conditional_edges()
+
+        checkpointer = MemorySaver()
+        return graph.compile(checkpointer=checkpointer)
+
+    def __build_mcp_client(self):
+        return MultiServerMCPClient(
+            {
+                "udahub": StreamableHttpConnection(
+                    url="http://localhost:8001/mcp", transport="streamable_http"
+                ),
+                "knowledge_base": StreamableHttpConnection(
+                    url="http://localhost:8002/mcp", transport="streamable_http"
+                ),
+                "cultpass": StreamableHttpConnection(
+                    url="http://localhost:8003/mcp", transport="streamable_http"
+                ),
+            }
+        )
+
+    def __init__(self):
+        self.graph = self.__build_graph()
+        self.mcp_client = self.__build_mcp_client()
+        self.llm = ChatOpenAI(
+            model="gpt-4o-mini",
+            temperature=0.0,
+        )
+
+    async def start_chat(
+        self,
+        account_id: str,
+        exteranal_user_id: str,
+        ticket_id: Optional[str] = None,
+        thread_id: str = str(uuid.uuid4()),
+        user_interface: UserInterface = ConsoleUserInterface(),
+    ):
+        print("Starting UdaHubAgent chat...")
+        tools = await self.mcp_client.get_tools()
+
+        state = UdaHubState(
+            messages=[],
+            user=UserContext(
+                account_id=account_id,
+                user_id=exteranal_user_id,
+            ),
+        )
+        config = {
+            "configurable": {
+                "thread_id": thread_id,
+                "mcp_tools": tools,
+                "llm": self.llm,
+            },
+        }
+        result_state = await self.graph.ainvoke(state, config=config)
+        print(result_state)
 
 
-def memorization_agent(state: UdaHubState) -> Command[Literal[END]]:
-    print("Called memorization_agent")
-    return Command(goto=END)
-
-
-workflow = StateGraph(UdaHubState)
-workflow.add_node(validation_agent)
-workflow.add_node(enrichment_agent)
-workflow.add_node(supervisor_agent)
-workflow.add_node(memorization_agent)
-
-workflow.add_edge(START, "validation_agent")
-graph = workflow.compile(
-    checkpointer=MemorySaver(),
-)
-graph.invoke(
-    input={"enriched": False},
-    config={
-        "configurable": {"thread_id": 4711, "user_interface": ConsoleUserInterface()}
-    },
-)
+if __name__ == "__main__":
+    agent = UdaHubAgent()
+    asyncio.run(agent.start_chat("cultpass", "a4ab87"))

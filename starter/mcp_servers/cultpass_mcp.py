@@ -4,6 +4,8 @@ from starter.data.models.cultpass import User, Reservation, Experience
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
+from datetime import datetime
+from typing import Optional
 
 import os
 
@@ -19,6 +21,10 @@ CULTPASS_MCP_PORT = int(os.getenv("CULTPASS_MCP_PORT", "8003"))
 
 class GetUserArguments(BaseModel):
     user_id: str = Field(description="The ID of the user to retrieve.")
+
+
+def checked_date(dt: Optional[datetime]) -> Optional[str]:
+    return dt.isoformat() if dt else None
 
 
 @mcp.tool(
@@ -44,7 +50,7 @@ def get_cultpass_user(user: GetUserArguments) -> dict | None:
         if result is None:
             return {"error": "This user does not exist."}
 
-        return {
+        result = {
             "user_id": result.user_id,
             "full_name": result.full_name,
             "email": result.email,
@@ -58,11 +64,13 @@ def get_cultpass_user(user: GetUserArguments) -> dict | None:
                 "tier": result.subscription.tier,
                 "monthly_quota": result.subscription.monthly_quota,
                 "started_at": result.subscription.started_at.isoformat(),
-                "ended_at": result.subscription.ended_at.isoformat(),
+                "ended_at": checked_date(result.subscription.ended_at),
                 "created_at": result.subscription.created_at.isoformat(),
                 "updated_at": result.subscription.updated_at.isoformat(),
             },
         }
+        print(result)
+        return result
 
 
 @mcp.tool(
