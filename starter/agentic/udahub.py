@@ -7,6 +7,7 @@ from starter.agentic.state import UdaHubState, UserContext
 from starter.agentic.nodes.validation import validation_node
 from starter.agentic.nodes.enrichment import enrichment_node
 from starter.agentic.nodes.supervisor import supervisor_node
+from starter.agentic.nodes.memorization import memorization_node
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 
@@ -63,6 +64,7 @@ class UdaHubAgent:
             node="supervisor",
             action=supervisor_node,
         )
+        graph.add_node(node="memorize", action=memorization_node)
 
         # Define Edges
         graph.add_edge(START, "validation")
@@ -75,6 +77,8 @@ class UdaHubAgent:
             },
         )
         graph.add_edge("enrichment", "supervisor")
+        graph.add_edge("supervisor", "memorize")
+        graph.add_edge("memorize", END)
 
         checkpointer = MemorySaver()
         return graph.compile(checkpointer=checkpointer)
@@ -109,6 +113,7 @@ class UdaHubAgent:
 
     async def start_chat(
         self,
+        message: str,
         account_id: str,
         exteranal_user_id: str,
         ticket_id: Optional[str] = None,
@@ -139,4 +144,11 @@ class UdaHubAgent:
 if __name__ == "__main__":
     agent = UdaHubAgent()
     for i in range(1):
-        asyncio.run(agent.start_chat("cultpass", "f556c0", thread_id="test"))
+        asyncio.run(
+            agent.start_chat(
+                message="I want to make a holiday at the beach.",
+                account_id="cultpass",
+                exteranal_user_id="f556c0",
+                thread_id="test_thread",
+            )
+        )
