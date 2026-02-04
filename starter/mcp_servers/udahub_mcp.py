@@ -2,13 +2,16 @@ from sqlalchemy import select, create_engine
 from sqlalchemy.orm import Session, selectinload
 from starter.data.models.udahub import User, Account, Ticket
 from fastmcp import FastMCP
+from fastmcp.utilities.logging import get_logger
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 import os
 import uuid
 
+
 load_dotenv()
+logger = get_logger("udahub_mcp")
 
 mcp = FastMCP("UDA Hub MCP Server")
 
@@ -46,7 +49,7 @@ def create_udahhub_user(user: CreateUdaHubUserArguments) -> dict:
         )
         session.add(new_user)
         session.commit()
-        return {
+        result = {
             "user_id": new_user.user_id,
             "account_id": new_user.account_id,
             "external_user_id": new_user.external_user_id,
@@ -54,6 +57,8 @@ def create_udahhub_user(user: CreateUdaHubUserArguments) -> dict:
             "created_at": new_user.created_at.isoformat(),
             "updated_at": new_user.updated_at.isoformat(),
         }
+        logger.debug(f"Created new UdaHub user: {result}")
+        return result
 
 
 class GetUdaHubUserArguments(BaseModel):
@@ -77,9 +82,10 @@ def get_udahub_user(user: GetUdaHubUserArguments) -> dict | None:
         statement = select(User).where(User.user_id == user.user_id)
         result = session.execute(statement).scalar_one_or_none()
         if result is None:
+            logger.debug(f"UdaHub user with ID {user.user_id} not found.")
             return None
 
-        return {
+        result = {
             "user_id": result.user_id,
             "account_id": result.account_id,
             "external_user_id": result.external_user_id,
@@ -87,6 +93,8 @@ def get_udahub_user(user: GetUdaHubUserArguments) -> dict | None:
             "created_at": result.created_at.isoformat(),
             "updated_at": result.updated_at.isoformat(),
         }
+        logger.debug(f"Retrieved UdaHub user: {result}")
+        return result
 
 
 class GetFindUdaHubUserArguments(BaseModel):
@@ -114,9 +122,12 @@ def find_external_user(user: GetFindUdaHubUserArguments) -> dict | None:
         )
         result = session.execute(statement).scalar_one_or_none()
         if result is None:
+            logger.debug(
+                f"UdaHub user with account ID {user.account_id} and external user ID {user.external_user_id} not found."
+            )
             return None
 
-        return {
+        result = {
             "user_id": result.user_id,
             "account_id": result.account_id,
             "external_user_id": result.external_user_id,
@@ -124,6 +135,8 @@ def find_external_user(user: GetFindUdaHubUserArguments) -> dict | None:
             "created_at": result.created_at.isoformat(),
             "updated_at": result.updated_at.isoformat(),
         }
+        logger.debug(f"Retrieved UdaHub user: {result}")
+        return result
 
 
 class GetUdaHubAccountArguments(BaseModel):
@@ -147,14 +160,17 @@ def get_udahub_account(account: GetUdaHubAccountArguments) -> dict | None:
         statement = select(Account).where(Account.account_id == account.account_id)
         result = session.execute(statement).scalar_one_or_none()
         if result is None:
+            logger.debug(f"UdaHub account with ID {account.account_id} not found.")
             return None
 
-        return {
+        result = {
             "account_id": result.account_id,
             "account_name": result.account_name,
             "created_at": result.created_at.isoformat(),
             "updated_at": result.updated_at.isoformat(),
         }
+        logger.debug(f"Retrieved UdaHub account: {result}")
+        return result
 
 
 if __name__ == "__main__":
