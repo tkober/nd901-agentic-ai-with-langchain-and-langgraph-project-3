@@ -17,7 +17,6 @@ class TaskContext(TypedDict, total=False):
 
 
 class UdaHubState(MessagesState, total=False):
-    udahub_user_id: str
     ticket_id: str
     user: UserContext
     task: TaskContext
