@@ -69,6 +69,7 @@ async def validate_user(
 
 
 async def validation_agent(state: UdaHubState, config: RunnableConfig) -> UdaHubState:
+    # Check if is already validated
     if state.get("is_validated", False) is True:
         return state
 
@@ -108,6 +109,7 @@ async def validation_agent(state: UdaHubState, config: RunnableConfig) -> UdaHub
         external_user_id=external_user_id,
     )
 
+    # In case validation failed let the user know
     if not response.validation_successfull:
         return {
             "messages": [
@@ -118,6 +120,7 @@ async def validation_agent(state: UdaHubState, config: RunnableConfig) -> UdaHub
             "task": TaskContext(status="failed", error=f"{response.error_message}"),
         }
 
+    # Greet the user
     messages = []
     if response.full_name:
         messages.append(
@@ -127,6 +130,7 @@ async def validation_agent(state: UdaHubState, config: RunnableConfig) -> UdaHub
             )
         )
 
+    # If this is the first interaction on behalf of the requested account let the user know.
     if response.uda_hub_user_created:
         messages.append(
             AIMessage(
