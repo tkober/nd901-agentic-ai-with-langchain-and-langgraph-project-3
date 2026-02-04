@@ -1,4 +1,5 @@
 from sqlalchemy import select, create_engine
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 from starter.data.models.udahub import User, Account, Ticket
 from fastmcp import FastMCP
@@ -40,25 +41,32 @@ class CreateUdaHubUserArguments(BaseModel):
 )
 def create_udahhub_user(user: CreateUdaHubUserArguments) -> dict:
     engine = create_engine(UDAHUB_DB_PATH)
-    with Session(engine) as session:
-        new_user = User(
-            user_id=str(uuid.uuid4()),
-            account_id=user.account_id,
-            external_user_id=user.external_user_id,
-            user_name=user.user_name,
-        )
-        session.add(new_user)
-        session.commit()
-        result = {
-            "user_id": new_user.user_id,
-            "account_id": new_user.account_id,
-            "external_user_id": new_user.external_user_id,
-            "user_name": new_user.user_name,
-            "created_at": new_user.created_at.isoformat(),
-            "updated_at": new_user.updated_at.isoformat(),
+    try:
+        with Session(engine) as session:
+            new_user = User(
+                user_id=str(uuid.uuid4()),
+                account_id=user.account_id,
+                external_user_id=user.external_user_id,
+                user_name=user.user_name,
+            )
+            session.add(new_user)
+            session.commit()
+            result = {
+                "user_id": new_user.user_id,
+                "account_id": new_user.account_id,
+                "external_user_id": new_user.external_user_id,
+                "user_name": new_user.user_name,
+                "created_at": new_user.created_at.isoformat(),
+                "updated_at": new_user.updated_at.isoformat(),
+            }
+            logger.debug(f"Created new UdaHub user: {result}")
+            return result
+
+    except IntegrityError as e:
+        logger.error(f"Integrity error creating UdaHub user: {e}")
+        return {
+            "error": "User with the given external_user_id and account_id already exists."
         }
-        logger.debug(f"Created new UdaHub user: {result}")
-        return result
 
 
 class GetUdaHubUserArguments(BaseModel):
