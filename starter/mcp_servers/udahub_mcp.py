@@ -121,4 +121,4 @@ def get_udahub_account(account: GetUdaHubAccountArguments) -> dict | None:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="http", port=UDAHUB_MCP_PORT)
+    mcp.run(transport="http", port=UDAHUB_MCP_PORT, log_level="debug")

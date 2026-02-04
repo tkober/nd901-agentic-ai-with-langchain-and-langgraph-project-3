@@ -42,7 +42,7 @@ def get_cultpass_user(user: GetUserArguments) -> dict | None:
         )
         result = session.execute(statement).scalar_one_or_none()
         if result is None:
-            return None
+            return {"error": "This user does not exist."}
 
         return {
             "user_id": result.user_id,
@@ -257,4 +257,4 @@ def get_experience(experience: GetExperienceArguments) -> dict | None:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="http", port=CULTPASS_MCP_PORT)
+    mcp.run(transport="http", port=CULTPASS_MCP_PORT, log_level="debug")

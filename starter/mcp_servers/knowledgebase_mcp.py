@@ -222,4 +222,4 @@ def query_cultpass_experiences(query: KnowledgeBaseQuery) -> list[dict] | dict:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="http", port=KNOWLEDGE_BASE_MCP_PORT)
+    mcp.run(transport="http", port=KNOWLEDGE_BASE_MCP_PORT, log_level="debug")
