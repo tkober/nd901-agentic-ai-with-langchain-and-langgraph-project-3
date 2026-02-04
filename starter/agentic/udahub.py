@@ -4,8 +4,8 @@ from langgraph.graph import START, END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_mcp_adapters.client import MultiServerMCPClient, StreamableHttpConnection
 from starter.agentic.state import UdaHubState, UserContext
-from starter.agentic.agents.validation import validation_agent
-from starter.agentic.agents.enrichment import enrichment_agent
+from starter.agentic.nodes.validation import validation_node
+from starter.agentic.nodes.enrichment import enrichment_node
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 
@@ -52,11 +52,11 @@ class UdaHubAgent:
         # Define Nodes
         graph.add_node(
             node="validation",
-            action=validation_agent,
+            action=validation_node,
         )
         graph.add_node(
             node="enrichment",
-            action=enrichment_agent,
+            action=enrichment_node,
         )
 
         # Define Edges
