@@ -62,7 +62,7 @@ class GetUdaHubUserArguments(BaseModel):
 
 @mcp.tool(
     name="get_udahub_user",
-    description="Retrieve user details from the UdaHub database.",
+    description="Retrieve user details from the UdaHub database by using the internal UDA Hub user ID.",
     tags=set(["udahub", "user", "details"]),
     meta={"author": "UDAHub", "version": "1.0"},
     annotations={
@@ -75,6 +75,43 @@ def get_udahub_user(user: GetUdaHubUserArguments) -> dict | None:
     engine = create_engine(UDAHUB_DB_PATH)
     with Session(engine) as session:
         statement = select(User).where(User.user_id == user.user_id)
+        result = session.execute(statement).scalar_one_or_none()
+        if result is None:
+            return None
+
+        return {
+            "user_id": result.user_id,
+            "account_id": result.account_id,
+            "external_user_id": result.external_user_id,
+            "user_name": result.user_name,
+            "created_at": result.created_at.isoformat(),
+            "updated_at": result.updated_at.isoformat(),
+        }
+
+
+class GetFindUdaHubUserArguments(BaseModel):
+    account_id: str = Field(description="The account id of the customer")
+    external_user_id: str = Field(description="The user ID in the customers system")
+
+
+@mcp.tool(
+    name="find_udahub_user",
+    description="Find a user in the UdaHub database by using the account ID of a customer and the external user ID.",
+    tags=set(["udahub", "user", "details"]),
+    meta={"author": "UDAHub", "version": "1.0"},
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+    },
+)
+def find_external_user(user: GetFindUdaHubUserArguments) -> dict | None:
+    engine = create_engine(UDAHUB_DB_PATH)
+    with Session(engine) as session:
+        statement = select(User).where(
+            User.account_id == user.account_id,
+            User.external_user_id == user.external_user_id,
+        )
         result = session.execute(statement).scalar_one_or_none()
         if result is None:
             return None
