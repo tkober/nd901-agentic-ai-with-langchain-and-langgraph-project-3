@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 
 import asyncio
 import uuid
-import os
 
 load_dotenv()
 
@@ -115,4 +114,5 @@ class UdaHubAgent:
 
 if __name__ == "__main__":
     agent = UdaHubAgent()
-    asyncio.run(agent.start_chat("cultpass", "a4ab87"))
+    asyncio.run(agent.start_chat("cultpass", "f556c0", thread_id="test"))
+    asyncio.run(agent.start_chat("cultpass", "f556c0", thread_id="test"))

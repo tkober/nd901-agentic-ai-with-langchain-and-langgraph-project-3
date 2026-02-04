@@ -41,7 +41,7 @@ class CreateUdaHubUserArguments(BaseModel):
 @mcp.tool(
     name="create_udahub_user",
     description="Create a new user in the UdaHub database.",
-    tags=set(["udahub", "user", "create"]),
+    tags=set(["udahub", "user", "create", "validation"]),
     meta={"author": "UDAHub", "version": "1.0"},
     annotations={
         "readOnlyHint": False,
@@ -123,7 +123,7 @@ class GetFindUdaHubUserArguments(BaseModel):
 @mcp.tool(
     name="find_udahub_user",
     description="Find a user in the UdaHub database by using the account ID of a customer and the external user ID.",
-    tags=set(["udahub", "user", "details"]),
+    tags=set(["udahub", "user", "details", "validation"]),
     meta={"author": "UDAHub", "version": "1.0"},
     annotations={
         "readOnlyHint": True,

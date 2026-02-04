@@ -1,17 +1,22 @@
+from typing import Optional
 from pydantic import BaseModel, Field
 from langchain.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableConfig
 from langchain.agents import create_agent
 from langchain.messages import AIMessage, SystemMessage
 from langgraph.errors import GraphRecursionError
-from starter.agentic.state import UdaHubState, UserContext, TaskContext
-from langchain_mcp_adapters.client import MultiServerMCPClient
+from starter.agentic.state import UdaHubState, TaskContext
 from starter.agentic.mcp_tool_utils import McpToolFilter
 
 
 class UserValidationResult(BaseModel):
     account_id: str = Field(description="The account ID of the UDA Hub customer")
-    uda_hub_user_id: str = Field(description="The users ID in UDA Hubs system")
+    uda_hub_user_id: Optional[str] = Field(
+        None, description="The users ID in UDA Hubs system"
+    )
+    full_name: Optional[str] = Field(
+        None, description="The name of the user if validation was successful."
+    )
     external_user_id: str = Field(description="The users ID in the customers system")
     uda_hub_user_created: bool = Field(
         description="A flag that shows whether a new UDA Hub user had to be created",
@@ -21,25 +26,29 @@ class UserValidationResult(BaseModel):
         description="A flag that shows whether the user could be validated with the customer",
         default=False,
     )
-    error_message: str = Field(
-        description="The error message in case the validation failed"
+    error_message: Optional[str] = Field(
+        None, description="The error message in case the validation failed"
     )
 
 
 async def validate_user(
     llm: BaseChatModel, tools: list, account_id: str, user_id: str
-) -> dict:
+) -> UserValidationResult:
     agent = create_agent(
         model=llm,
         system_prompt=SystemMessage(f"""
         You are a validation agent for UDA Hub. You need to validate a user for the customer with the account_id='{account_id}'.
         It has already been checked, that {account_id} is a legit customer of UDA Hub. 
+        You have tools for accessing both UDA Hubs system and the system of the customer. 
 
-        The user with the user_id='{user_id}' needs to be validated using the following steps:
+        The user with the external user with user_id='{user_id}' needs to be validated using the following steps:
 
-        1.) Check with the customer whether with user exists and get the details. If the user does not exist stop here.
-        2.) Check with UDA Hub MCP Server whether they already have a corresponding user in their DB.
-        3.) If UDA Hub does not have an corresponding entry yet, create one with the details you got from the customer.
+        Check with the customer whether with user exists. If you cannot find a user in the customers system it is an invalid user and you terminate here.
+        If you find a user check with UDA Hub whether there is a user. If you find one terminate here. If not create a new one.
+
+        Rules:
+        - Do call tools only ones
+        - Do not try to create a new user on UDA Hub if you already found one
         """),
         tools=tools,
         response_format=UserValidationResult,
@@ -53,7 +62,6 @@ async def validate_user(
         return UserValidationResult(
             account_id=account_id,
             external_user_id=user_id,
-            uda_hub_user_id="",
             uda_hub_user_created=False,
             validation_successfull=False,
             error_message="An internal error occurred.",
@@ -82,14 +90,45 @@ async def validation_agent(state: UdaHubState, config: RunnableConfig) -> UdaHub
 
     # Validate the provided user
     validation_tools = []
-    validation_tools.extend(McpToolFilter(tools).by_author("UDA Hub").get_all())
     validation_tools.extend(
-        McpToolFilter(tools).by_author(account_id).by_read_only(True).get_all()
+        McpToolFilter(tools).by_author("UDAHub").by_tags(["validation"]).get_all()
+    )
+    validation_tools.extend(
+        McpToolFilter(tools)
+        .by_author(account_id)
+        .by_read_only(True)
+        .by_tags(["validation"])
+        .get_all()
     )
     response = await validate_user(
         llm=llm, tools=validation_tools, account_id=account_id, user_id=user_id
     )
-    print(response)
 
-    print("Called validation_agent")
-    return state
+    if not response.validation_successfull:
+        return {
+            "messages": [
+                AIMessage(
+                    content=f"I was unable to validate your identity. If this issue persists please reach out to '{account_id}'."
+                )
+            ],
+            "task": TaskContext(status="failed", error=f"{response.error_message}"),
+        }
+
+    messages = []
+    if response.full_name:
+        messages.append(
+            AIMessage(
+                f"Welcome {response.full_name}!\n"
+                f"I am UDA Hub and I will be helping you on behalf of {response.account_id}."
+            )
+        )
+
+    if response.uda_hub_user_created:
+        messages.append(
+            AIMessage(
+                "It seems like I am serving you the first time. I created a new UDA Hub user for you to keep context."
+                f"Your user ID with me is {response.uda_hub_user_id}"
+            )
+        )
+
+    return {"messages": messages, "is_validated": True}

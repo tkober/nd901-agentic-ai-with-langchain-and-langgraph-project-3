@@ -42,7 +42,7 @@ def yield_message(message: str) -> dict:
 @mcp.tool(
     name="get_cultpass_user",
     description="Retrieve user details from the Cultpass database.",
-    tags=set(["user", "details"]),
+    tags=set(["user", "details", "validation"]),
     meta={"author": "cultpass", "version": "1.0"},
     annotations={
         "readOnlyHint": True,
@@ -50,7 +50,7 @@ def yield_message(message: str) -> dict:
         "idempotentHint": True,
     },
 )
-def get_cultpass_user(user: GetUserArguments) -> dict | None:
+def get_cultpass_user(user: GetUserArguments) -> dict:
     engine = create_engine(CULTPASS_DB_PATH)
     with Session(engine) as session:
         statement = (
@@ -60,8 +60,7 @@ def get_cultpass_user(user: GetUserArguments) -> dict | None:
         )
         result = session.execute(statement).scalar_one_or_none()
         if result is None:
-            logger.debug(f"No Cultpass user found for user_id {user.user_id}")
-            return None
+            return yield_error(f"No Cultpass user found for user_id {user.user_id}")
 
         result = {
             "user_id": result.user_id,
@@ -256,7 +255,7 @@ class GetExperienceArguments(BaseModel):
         "idempotentHint": True,
     },
 )
-def get_experience(experience: GetExperienceArguments) -> dict | None:
+def get_experience(experience: GetExperienceArguments) -> dict:
     engine = create_engine(CULTPASS_DB_PATH)
     with Session(engine) as session:
         statement = select(Experience).where(
@@ -264,7 +263,9 @@ def get_experience(experience: GetExperienceArguments) -> dict | None:
         )
         result = session.execute(statement).scalar_one_or_none()
         if result is None:
-            return None
+            return yield_error(
+                f"No experience found for experience_id {experience.experience_id}"
+            )
 
         return {
             "experience_id": result.experience_id,
