@@ -6,6 +6,7 @@ from langchain_mcp_adapters.client import MultiServerMCPClient, StreamableHttpCo
 from starter.agentic.state import UdaHubState, UserContext
 from starter.agentic.nodes.validation import validation_node
 from starter.agentic.nodes.enrichment import enrichment_node
+from starter.agentic.nodes.supervisor import supervisor_node
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 
@@ -58,6 +59,10 @@ class UdaHubAgent:
             node="enrichment",
             action=enrichment_node,
         )
+        graph.add_node(
+            node="supervisor",
+            action=supervisor_node,
+        )
 
         # Define Edges
         graph.add_edge(START, "validation")
@@ -69,6 +74,7 @@ class UdaHubAgent:
                 "end": END,
             },
         )
+        graph.add_edge("enrichment", "supervisor")
 
         checkpointer = MemorySaver()
         return graph.compile(checkpointer=checkpointer)
@@ -132,5 +138,5 @@ class UdaHubAgent:
 
 if __name__ == "__main__":
     agent = UdaHubAgent()
-    for i in range(2):
+    for i in range(1):
         asyncio.run(agent.start_chat("cultpass", "f556c0", thread_id="test"))
