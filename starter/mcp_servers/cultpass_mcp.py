@@ -42,7 +42,7 @@ def yield_message(message: str) -> dict:
 @mcp.tool(
     name="get_cultpass_user",
     description="Retrieve user details from the Cultpass database.",
-    tags=set(["cultpass", "user", "details", "validation"]),
+    tags=set(["cultpass", "user", "details", "subscription", "validation"]),
     meta={"author": "cultpass", "version": "1.0"},
     annotations={
         "readOnlyHint": True,
@@ -83,6 +83,107 @@ def get_cultpass_user(user: GetUserArguments) -> dict:
         }
         logger.debug(f"Retrieved Cultpass user: {result}")
         return result
+
+
+@mcp.tool(
+    name="cancel_cultpass_subscription",
+    description="Cancel a user's subscription in the Cultpass database.",
+    tags=set(["cultpass", "subscription", "cancel"]),
+    meta={"author": "cultpass", "version": "1.0"},
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": True,
+        "idempotentHint": False,
+    },
+)
+def cancel_subscription(user: GetUserArguments) -> dict:
+    engine = create_engine(CULTPASS_DB_PATH)
+    with Session(engine) as session:
+        statement = (
+            select(User)
+            .where(User.user_id == user.user_id)
+            .options(selectinload(User.subscription))
+        )
+        result = session.execute(statement).scalar_one_or_none()
+        if result is None:
+            return yield_error(f"No Cultpass user found for user_id {user.user_id}")
+
+        if result.subscription is None or result.subscription.status != "active":
+            return yield_error("User does not have an active subscription.")
+
+        result.subscription.status = "cancelled"
+        result.subscription.ended_at = datetime.utcnow()
+        session.commit()
+
+    return yield_message("Subscription cancelled successfully.")
+
+
+@mcp.tool(
+    name="reactivate_cultpass_subscription",
+    description="Reactivate a user's cancelled subscription in the Cultpass database.",
+    tags=set(["cultpass", "subscription", "reactivate"]),
+    meta={"author": "cultpass", "version": "1.0"},
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "idempotentHint": False,
+    },
+)
+def reactivate_subscription(user: GetUserArguments) -> dict:
+    engine = create_engine(CULTPASS_DB_PATH)
+    with Session(engine) as session:
+        statement = (
+            select(User)
+            .where(User.user_id == user.user_id)
+            .options(selectinload(User.subscription))
+        )
+        result = session.execute(statement).scalar_one_or_none()
+        if result is None:
+            return yield_error(f"No Cultpass user found for user_id {user.user_id}")
+
+        if result.subscription is None or result.subscription.status != "cancelled":
+            return yield_error("User does not have a cancelled subscription.")
+
+        result.subscription.status = "active"
+        result.subscription.ended_at = None
+        session.commit()
+
+    return yield_message("Subscription reactivated successfully.")
+
+
+@mcp.tool(
+    name="upgrade_cultpass_subscription",
+    description="Upgrade a user's subscription to premium in the Cultpass database.",
+    tags=set(["cultpass", "subscription", "upgrade"]),
+    meta={"author": "cultpass", "version": "1.0"},
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "idempotentHint": False,
+    },
+)
+def upgrade_subscription(user: GetUserArguments) -> dict:
+    engine = create_engine(CULTPASS_DB_PATH)
+    with Session(engine) as session:
+        statement = (
+            select(User)
+            .where(User.user_id == user.user_id)
+            .options(selectinload(User.subscription))
+        )
+        result = session.execute(statement).scalar_one_or_none()
+        if result is None:
+            return yield_error(f"No Cultpass user found for user_id {user.user_id}")
+
+        if result.subscription is None or result.subscription.status != "active":
+            return yield_error("User does not have an active subscription.")
+
+        if result.subscription.tier == "premium":
+            return yield_error("User already has a premium subscription.")
+
+        result.subscription.tier = "premium"
+        session.commit()
+
+    return yield_message("Subscription upgraded to premium successfully.")
 
 
 @mcp.tool(
