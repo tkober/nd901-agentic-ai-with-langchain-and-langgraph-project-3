@@ -1,9 +1,13 @@
 from langchain_core.runnables import RunnableConfig
 from starter.agentic.state import UdaHubState
+from langchain_core.messages import AIMessage
 
 
 async def reservation_agent_node(
     state: UdaHubState, config: RunnableConfig
 ) -> UdaHubState:
-    print("Calling Reservation")
-    return state
+    return {
+        "messages": [AIMessage(content="Reservation Agent activated")],
+        "has_pending_messages": True,
+        "terminate_chat": True,
+    }

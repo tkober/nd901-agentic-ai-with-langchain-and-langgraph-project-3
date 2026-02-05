@@ -6,10 +6,9 @@ async def enrichment_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
     if state.get("is_enriched", False) is True:
         return state
 
-    print("Calling Enrichment")
-
-    tickete_id = state.get("ticket_id", None)
-    if tickete_id:
+    # TODO: implement
+    ticket_id = state.get("ticket_id", None)
+    if ticket_id:
         pass
 
     return {"messages": [], "is_enriched": True}

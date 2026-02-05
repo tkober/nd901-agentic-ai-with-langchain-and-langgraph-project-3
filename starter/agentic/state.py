@@ -28,3 +28,4 @@ class UdaHubState(MessagesState, total=False):
     has_pending_messages: bool
     need_user_input: bool
     worker: Optional[str]
+    priority: Optional[Priority]
