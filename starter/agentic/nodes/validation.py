@@ -33,13 +33,17 @@ class UserValidationResult(BaseModel):
 
 
 async def validate_user(
-    llm: BaseChatModel, tools: list, account_id: str, external_user_id: str
+    llm: BaseChatModel,
+    tools: list,
+    account_id: str,
+    account_name: str,
+    external_user_id: str,
 ) -> UserValidationResult:
     agent = create_agent(
         model=llm,
         system_prompt=SystemMessage(f"""
-        You are a validation agent for UDA Hub. You need to validate a user for the customer with the account_id='{account_id}'.
-        It has already been checked, that {account_id} is a legit customer of UDA Hub. 
+        You are a validation agent for UDA Hub. You need to validate a user for the customer '{account_name}' with the account_id='{account_id}'.
+        It has already been checked, that '{account_name}' is a legit customer of UDA Hub. 
         You have tools for accessing both UDA Hubs system and the system of the customer. 
 
         The user with the external user with user_id='{external_user_id}' needs to be validated using the following steps:
@@ -106,6 +110,7 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
         llm=llm,
         tools=validation_tools,
         account_id=account_id,
+        account_name=account.get("account_name", account_id),
         external_user_id=external_user_id,
     )
 
