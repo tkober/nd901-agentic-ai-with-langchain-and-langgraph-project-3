@@ -2,6 +2,7 @@ from typing import Literal, TypedDict, Optional
 from langgraph.graph.message import MessagesState
 
 TaskStatus = Literal["in_progress", "completed", "failed"]
+Priority = Literal["normal", "high", "critical"]
 
 
 class UserContext(TypedDict, total=False):

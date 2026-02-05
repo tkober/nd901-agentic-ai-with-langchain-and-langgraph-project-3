@@ -55,7 +55,7 @@ async def validate_user(
     )
 
     try:
-        result = await agent.ainvoke({}, config={"recursion_limit": 15})
+        result = await agent.ainvoke({}, config={"recursion_limit": 10})
         return result["structured_response"]
 
     except GraphRecursionError:
