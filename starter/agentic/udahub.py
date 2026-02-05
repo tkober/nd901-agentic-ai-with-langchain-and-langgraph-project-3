@@ -12,7 +12,10 @@ from starter.agentic.nodes.validation import validation_node
 from starter.agentic.nodes.enrichment import enrichment_node
 from starter.agentic.nodes.supervisor import supervisor_node
 from starter.agentic.nodes.memorization import memorization_node
-from starter.agentic.nodes.chat import chat_node
+
+# from starter.agentic.nodes.chat import chat_node
+from starter.agentic.nodes.send_messages import send_message_node
+from starter.agentic.nodes.read_message import read_message_node
 from starter.agentic.agents.browsing import browsing_agent_node
 from starter.agentic.agents.escalate_to_human import escalate_to_human_agent_node
 from starter.agentic.agents.faq import faq_agent_node
@@ -125,7 +128,8 @@ class UdaHubAgent:
             graph.add_node(node=agent["name"], action=agent["action"])
 
         graph.add_node(node="memorize", action=memorization_node)
-        graph.add_node(node="chat", action=chat_node)
+        graph.add_node(node="read_message", action=read_message_node)
+        graph.add_node(node="send_message", action=send_message_node)
 
         # Define Edges
         graph.add_edge(START, "validation")
@@ -134,7 +138,8 @@ class UdaHubAgent:
 
         supervisor_path_map = {agent["name"]: agent["name"] for agent in self.agents}
         supervisor_path_map["escalate_to_human"] = "escalate_to_human"
-        supervisor_path_map["chat"] = "chat"
+        supervisor_path_map["read_message"] = "read_message"
+        supervisor_path_map["send_message"] = "send_message"
         supervisor_path_map["end"] = "memorize"
         graph.add_conditional_edges(
             source="supervisor",
@@ -145,7 +150,8 @@ class UdaHubAgent:
         for agent in self.agents:
             graph.add_edge(agent["name"], "supervisor")
 
-        graph.add_edge("chat", "supervisor")
+        graph.add_edge("read_message", "supervisor")
+        graph.add_edge("send_message", "supervisor")
         graph.add_edge("escalate_to_human", "supervisor")
         graph.add_edge("memorize", END)
 

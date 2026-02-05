@@ -89,6 +89,7 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
             "messages": [AIMessage(content="The provided account ID is invalid.")],
             "task": TaskContext(status="failed", error="Invalid account ID"),
             "terminate_chat": True,
+            "has_pending_messages": True,
         }
 
     # Validate the provided user
@@ -119,6 +120,7 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
                 )
             ],
             "terminate_chat": True,
+            "has_pending_messages": True,
             "task": TaskContext(status="failed", error=f"{response.error_message}"),
         }
 
@@ -144,6 +146,7 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
     return {
         "messages": messages,
         "is_validated": True,
+        "has_pending_messages": True,
         "user": {
             "account_id": account_id,
             "external_user_id": external_user_id,

@@ -9,4 +9,5 @@ def escalate_to_human_agent_node(
     return {
         "messages": [AIMessage("I am forwarding you to a human agent...")],
         "terminate_chat": True,
+        "has_pending_messages": True,
     }

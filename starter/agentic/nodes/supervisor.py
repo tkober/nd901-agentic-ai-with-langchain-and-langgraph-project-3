@@ -18,13 +18,17 @@ class SupervisorAnalysis(BaseModel):
 async def supervisor_node(state: UdaHubState, config: RunnableConfig) -> UdaHubState:
     print("Calling superevisor")
 
+    # Check for pending messages
+    if state.get("has_pending_messages", False):
+        return {"messages": [], "worker": "send_message"}
+
     # Check termination
     if state.get("terminate_chat", False):
         return {"messages": [], "worker": "end"}
 
-    # Check needs chat interaction
-    if state.get("need_user_input", False) or state.get("has_pending_messages", False):
-        return {"messages": [], "worker": "chat"}
+    # Check if user input is needed
+    if state.get("need_user_input", False):
+        return {"messages": [], "worker": "read_message"}
 
     # configurable = config.get("configurable", {})
     # llm = configurable.get("llm")
