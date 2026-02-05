@@ -4,6 +4,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain.messages import HumanMessage
 from langgraph.graph.message import add_messages
 from langchain_mcp_adapters.client import MultiServerMCPClient, StreamableHttpConnection
+from langchain_mcp_adapters.sessions import Connection
 from starter.agentic.state import UdaHubState, UserContext
 from starter.agentic.nodes.validation import validation_node
 from starter.agentic.nodes.enrichment import enrichment_node
@@ -18,6 +19,20 @@ import asyncio
 import uuid
 
 load_dotenv()
+
+
+class McpServerList:
+    servers: dict[str, Connection]
+
+    def __init__(self):
+        self.servers = {}
+
+    def add_connection(self, name: str, connection: Connection) -> "McpServerList":
+        self.servers[name] = connection
+        return self
+
+    def create_client(self) -> MultiServerMCPClient:
+        return MultiServerMCPClient(self.servers)
 
 
 class UdaHubAgent:
@@ -63,24 +78,26 @@ class UdaHubAgent:
             return "end"
         return "enrich"
 
-    def _build_mcp_client(self):
-        return MultiServerMCPClient(
-            {
-                "udahub": StreamableHttpConnection(
+    def _build_mcp_client(self, mcp_servers: McpServerList):
+        return (
+            mcp_servers.add_connection(
+                "udahub",
+                StreamableHttpConnection(
                     url="http://localhost:8001/mcp", transport="streamable_http"
                 ),
-                "knowledge_base": StreamableHttpConnection(
+            )
+            .add_connection(
+                "knowledge_base",
+                StreamableHttpConnection(
                     url="http://localhost:8002/mcp", transport="streamable_http"
                 ),
-                "cultpass": StreamableHttpConnection(
-                    url="http://localhost:8003/mcp", transport="streamable_http"
-                ),
-            }
+            )
+            .create_client()
         )
 
-    def __init__(self):
+    def __init__(self, mcp_servers: McpServerList):
         self.graph = self._build_graph()
-        self.mcp_client = self._build_mcp_client()
+        self.mcp_client = self._build_mcp_client(mcp_servers)
         self.llm = ChatOpenAI(
             model="gpt-4o-mini",
             temperature=0.0,
@@ -132,7 +149,13 @@ class UdaHubAgent:
 
 
 if __name__ == "__main__":
-    agent = UdaHubAgent()
+    mcp_servers = McpServerList().add_connection(
+        "cultpass",
+        StreamableHttpConnection(
+            url="http://localhost:8003/mcp", transport="streamable_http"
+        ),
+    )
+    agent = UdaHubAgent(mcp_servers)
     for i in range(1):
         asyncio.run(
             agent.start_chat(
