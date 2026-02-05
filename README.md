@@ -46,6 +46,30 @@ uv sync
 | `make_cultpass_reservation` | tool | Make a reservation for a user in the Cultpass database. | `user_id: str`, `experience_id: str` | `cultpass`, `reservation`, `create` | no | no | no |
 | `get_cultpass_experience` | tool | Retrieve experience details from the Cultpass database. | `experience_id: str` | `cultpass`, `experience`, `details`, `browsing` | yes | no | yes |
 
+## Environment Variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `OPENAI_API_KEY` | (required) | API key used by `langchain_openai.ChatOpenAI` (required to run the agent). |
+| `UDAHUB_DB_PATH` | `sqlite:///starter/data/core/udahub.db` | SQLAlchemy connection string for the UDA Hub core database (used by the UDA Hub MCP server and DB helpers). |
+| `CULTPASS_DB_PATH` | `sqlite:///starter/data/external/cultpass.db` | SQLAlchemy connection string for the Cultpass external database (used by the Cultpass MCP server and knowledgebase sync). |
+| `CHROMA_DB_PATH` | `./chroma_data` | Filesystem path for the persistent ChromaDB store (used by the knowledgebase MCP server). |
+| `UDAHUB_MCP_PORT` | `8001` | Port for the UDA Hub MCP server HTTP transport. |
+| `KNOWLEDGE_BASE_MCP_PORT` | `8002` | Port for the Knowledgebase MCP server HTTP transport. |
+| `CULTPASS_MCP_PORT` | `8003` | Port for the Cultpass MCP server HTTP transport. |
+
+## Tracing
+
+This project supports request/response tracing via **LangSmith**. If you set the environment variables below, LangChain/LangGraph will emit traces that you can inspect in the LangSmith UI.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `LANGSMITH_TRACING` | (unset / `false`) | Enable or disable tracing (set to `true` to turn tracing on). |
+| `LANGSMITH_API_KEY` | (required for tracing) | LangSmith API key used to authenticate trace uploads. |
+| `LANGSMITH_ENDPOINT` | (LangSmith default) | Optional custom endpoint (useful for EU region or self-hosted LangSmith). |
+| `LANGSMITH_PROJECT` | (LangSmith default) | Optional project name to group traces (e.g. `Development`). |
+
+
 
 
 ## Agents

@@ -11,7 +11,6 @@ from starter.data.udahub_db import (
 )
 
 import os
-import uuid
 
 
 load_dotenv()
@@ -20,7 +19,7 @@ logger = get_logger("udahub_mcp")
 mcp = FastMCP("UDA Hub MCP Server")
 
 UDAHUB_DB_PATH = os.getenv("UDAHUB_DB_PATH", "sqlite:///starter/data/core/udahub.db")
-UDAHUB_MCP_PORT = int(os.getenv("CULTPASS_MCP_PORT", "8001"))
+UDAHUB_MCP_PORT = int(os.getenv("UDAHUB_MCP_PORT", "8001"))
 
 
 def yield_error(error_message: str) -> dict:
