@@ -1,7 +1,7 @@
 from langchain_core.runnables import RunnableConfig
 from starter.agentic.state import UdaHubState
 from langchain.agents import create_agent
-from langchain.messages import AIMessage, SystemMessage
+from langchain_core.messages import SystemMessage
 from pydantic import BaseModel, Field
 from starter.agentic.state import Priority
 

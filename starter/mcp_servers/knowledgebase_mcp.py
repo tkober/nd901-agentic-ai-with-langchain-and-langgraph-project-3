@@ -140,7 +140,9 @@ class KnowledgeBaseQuery(BaseModel):
         description="The search query string for a semantic search in a vector database"
     )
     n_results: int = Field(
-        default=5, description="The number of results to return from the query"
+        description="The number of results to return from the query",
+        ge=0,
+        le=10,
     )
 
 

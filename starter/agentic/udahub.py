@@ -102,7 +102,7 @@ class UdaHubAgent:
         self.graph = self._build_graph()
         self.mcp_client = self._build_mcp_client(mcp_servers)
         self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
+            model="gpt-4.1",
             temperature=0.0,
         )
 
@@ -219,6 +219,7 @@ class UdaHubAgent:
                 "chat_interface": chat_interface,
                 "available_agents": available_agents,
             },
+            "recursion_limit": 100,
         }
 
         print(f"Thread ID: {thread_id}\n")

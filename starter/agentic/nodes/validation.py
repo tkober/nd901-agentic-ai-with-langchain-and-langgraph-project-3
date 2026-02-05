@@ -8,6 +8,7 @@ from langgraph.errors import GraphRecursionError
 from starter.agentic.state import UdaHubState, TaskContext
 from starter.agentic.mcp_tool_utils import McpToolFilter
 from starter.data.udahub_db import get_account_by_id
+from textwrap import dedent
 
 
 class UserValidationResult(BaseModel):
@@ -41,20 +42,22 @@ async def validate_user(
 ) -> UserValidationResult:
     agent = create_agent(
         model=llm,
-        system_prompt=SystemMessage(f"""
-        You are a validation agent for UDA Hub. You need to validate a user for the customer '{account_name}' with the account_id='{account_id}'.
-        It has already been checked, that '{account_name}' is a legit customer of UDA Hub. 
-        You have tools for accessing both UDA Hubs system and the system of the customer. 
+        system_prompt=SystemMessage(
+            dedent(f"""
+            You are a validation agent for UDA Hub. You need to validate a user for the customer '{account_name}' with the account_id='{account_id}'.
+            It has already been checked, that '{account_name}' is a legit customer of UDA Hub. 
+            You have tools for accessing both UDA Hubs system and the system of the customer. 
 
-        The user with the external user with user_id='{external_user_id}' needs to be validated using the following steps:
+            The user with the external user with user_id='{external_user_id}' needs to be validated using the following steps:
 
-        Check with the customer whether with user exists. If you cannot find a user in the customers system it is an invalid user and you terminate here.
-        If you find a user check with UDA Hub whether there is a user. If you find one terminate here. If not create a new one.
+            Check with the customer whether with user exists. If you cannot find a user in the customers system it is an invalid user and you terminate here.
+            If you find a user check with UDA Hub whether there is a user. If you find one terminate here. If not create a new one.
 
-        Rules:
-        - Do call tools only ones
-        - Do not try to create a new user on UDA Hub if you already found one
-        """),
+            Rules:
+            - Do call tools only once
+            - Do not try to create a new user on UDA Hub if you already found one
+        """)
+        ),
         tools=tools,
         response_format=UserValidationResult,
     )
@@ -84,7 +87,7 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
     account_id = user.get("account_id", "")
     external_user_id = user.get("external_user_id", "")
 
-    # Check that the provided account id belongs to a customer of UDA Hub
+    # Check that the provided account id belongs to a customer of UDA HubWW
     account = get_account_by_id(account_id)
     if account is None:
         return {
