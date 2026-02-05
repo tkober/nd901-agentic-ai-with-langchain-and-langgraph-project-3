@@ -136,7 +136,9 @@ class UdaHubKnowledgeEntry(KnowledgeBaseEntry):
 
 
 class KnowledgeBaseQuery(BaseModel):
-    query_text: str = Field(description="The search query string")
+    query_text: str = Field(
+        description="The search query string for a semantic search in a vector database"
+    )
     n_results: int = Field(
         default=5, description="The number of results to return from the query"
     )
@@ -191,8 +193,8 @@ class CultpassExperience(KnowledgeBaseEntry):
 
 @mcp.tool(
     name="query_cultpass_experiences",
-    description="Query the Cultpass experiences knowledgebase.",
-    tags=set(["cultpass", "query", "knowledge", "experiences"]),
+    description="Query the experiences which Cultpass offers.",
+    tags=set(["cultpass", "query", "knowledge", "experiences", "browsing"]),
     meta={"author": "UDAHub Knowledge Base", "version": "1.0"},
     annotations={
         "readOnlyHint": True,

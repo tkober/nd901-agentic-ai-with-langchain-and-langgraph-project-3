@@ -1,11 +1,14 @@
-from sqlalchemy import select, create_engine
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-from starter.data.models.udahub import User, Account
 from fastmcp import FastMCP
 from fastmcp.utilities.logging import get_logger
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
+from starter.data.udahub_db import (
+    create_user,
+    get_user_by_id,
+    get_user_by_account_and_external_id,
+    get_account_by_id,
+)
 
 import os
 import uuid
@@ -50,27 +53,14 @@ class CreateUdaHubUserArguments(BaseModel):
     },
 )
 def create_udahhub_user(user: CreateUdaHubUserArguments) -> dict:
-    engine = create_engine(UDAHUB_DB_PATH)
     try:
-        with Session(engine) as session:
-            new_user = User(
-                user_id=str(uuid.uuid4()),
-                account_id=user.account_id,
-                external_user_id=user.external_user_id,
-                user_name=user.user_name,
-            )
-            session.add(new_user)
-            session.commit()
-            result = {
-                "user_id": new_user.user_id,
-                "account_id": new_user.account_id,
-                "external_user_id": new_user.external_user_id,
-                "user_name": new_user.user_name,
-                "created_at": new_user.created_at.isoformat(),
-                "updated_at": new_user.updated_at.isoformat(),
-            }
-            logger.debug(f"Created new UdaHub user: {result}")
-            return result
+        result = create_user(
+            account_id=user.account_id,
+            external_user_id=user.external_user_id,
+            user_name=user.user_name,
+        )
+        logger.debug(f"Created new UdaHub user: {result}")
+        return result
 
     except IntegrityError as e:
         logger.error(f"Integrity error creating UdaHub user: {e}")
@@ -95,24 +85,13 @@ class GetUdaHubUserArguments(BaseModel):
     },
 )
 def get_udahub_user(user: GetUdaHubUserArguments) -> dict | None:
-    engine = create_engine(UDAHUB_DB_PATH)
-    with Session(engine) as session:
-        statement = select(User).where(User.user_id == user.user_id)
-        result = session.execute(statement).scalar_one_or_none()
-        if result is None:
-            logger.debug(f"UdaHub user with ID {user.user_id} not found.")
-            return None
+    result = get_user_by_id(user.user_id)
+    if result is None:
+        logger.debug(f"UdaHub user with ID {user.user_id} not found.")
+        return None
 
-        result = {
-            "user_id": result.user_id,
-            "account_id": result.account_id,
-            "external_user_id": result.external_user_id,
-            "user_name": result.user_name,
-            "created_at": result.created_at.isoformat(),
-            "updated_at": result.updated_at.isoformat(),
-        }
-        logger.debug(f"Retrieved UdaHub user: {result}")
-        return result
+    logger.debug(f"Retrieved UdaHub user: {result}")
+    return result
 
 
 class GetFindUdaHubUserArguments(BaseModel):
@@ -132,29 +111,17 @@ class GetFindUdaHubUserArguments(BaseModel):
     },
 )
 def find_external_user(user: GetFindUdaHubUserArguments) -> dict | None:
-    engine = create_engine(UDAHUB_DB_PATH)
-    with Session(engine) as session:
-        statement = select(User).where(
-            User.account_id == user.account_id,
-            User.external_user_id == user.external_user_id,
+    result = get_user_by_account_and_external_id(
+        account_id=user.account_id, external_user_id=user.external_user_id
+    )
+    if result is None:
+        logger.debug(
+            f"UdaHub user with account ID {user.account_id} and external user ID {user.external_user_id} not found."
         )
-        result = session.execute(statement).scalar_one_or_none()
-        if result is None:
-            logger.debug(
-                f"UdaHub user with account ID {user.account_id} and external user ID {user.external_user_id} not found."
-            )
-            return None
+        return None
 
-        result = {
-            "user_id": result.user_id,
-            "account_id": result.account_id,
-            "external_user_id": result.external_user_id,
-            "user_name": result.user_name,
-            "created_at": result.created_at.isoformat(),
-            "updated_at": result.updated_at.isoformat(),
-        }
-        logger.debug(f"Retrieved UdaHub user: {result}")
-        return result
+    logger.debug(f"Retrieved UdaHub user: {result}")
+    return result
 
 
 class GetUdaHubAccountArguments(BaseModel):
@@ -173,22 +140,13 @@ class GetUdaHubAccountArguments(BaseModel):
     },
 )
 def get_udahub_account(account: GetUdaHubAccountArguments) -> dict | None:
-    engine = create_engine(UDAHUB_DB_PATH)
-    with Session(engine) as session:
-        statement = select(Account).where(Account.account_id == account.account_id)
-        result = session.execute(statement).scalar_one_or_none()
-        if result is None:
-            logger.debug(f"UdaHub account with ID {account.account_id} not found.")
-            return None
+    result = get_account_by_id(account.account_id)
+    if result is None:
+        logger.debug(f"UdaHub account with ID {account.account_id} not found.")
+        return None
 
-        result = {
-            "account_id": result.account_id,
-            "account_name": result.account_name,
-            "created_at": result.created_at.isoformat(),
-            "updated_at": result.updated_at.isoformat(),
-        }
-        logger.debug(f"Retrieved UdaHub account: {result}")
-        return result
+    logger.debug(f"Retrieved UdaHub account: {result}")
+    return result
 
 
 if __name__ == "__main__":
