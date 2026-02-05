@@ -6,6 +6,7 @@ from langgraph.graph.message import add_messages
 from langchain_mcp_adapters.client import MultiServerMCPClient, StreamableHttpConnection
 from langchain_mcp_adapters.sessions import Connection
 from langchain_core.runnables import RunnableConfig
+from langchain_core.runnables.graph import MermaidDrawMethod
 from starter.agentic.state import UdaHubState, UserContext
 from starter.agentic.nodes.validation import validation_node
 from starter.agentic.nodes.enrichment import enrichment_node
@@ -19,6 +20,7 @@ from starter.agentic.agents.reservation import reservation_agent_node
 from starter.agentic.agents.subscription import subscription_agent_node
 from starter.agentic.chat_interface import ChatInterface, ConsoleChatInterface
 from langchain_openai import ChatOpenAI
+from IPython.display import Image
 from dotenv import load_dotenv
 
 import asyncio
@@ -169,6 +171,16 @@ class UdaHubAgent:
             )
             .create_client()
         )
+
+    def draw_graph_as_mermaid(self) -> Image:
+        return Image(
+            self.graph.get_graph().draw_mermaid_png(
+                draw_method=MermaidDrawMethod.PYPPETEER
+            )
+        )
+
+    def print_graph_as_ascii(self):
+        self.graph.get_graph().print_ascii()
 
     async def start_chat(
         self,
