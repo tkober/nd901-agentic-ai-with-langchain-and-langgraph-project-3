@@ -14,7 +14,25 @@ uv sync
 
 ## MCP Servers
 
+All tooling in this project is exposed via MCP servers, which are implemented using the `langchain_mcp` library. Each server provides a set of tools and resources that can be accessed by the agent to perform various tasks related to user management, knowledgebase querying, and experience management.
+
+In order to run this project, you need to start these MCP servers so that the agent can communicate with them.
+
+Before running the MCP Servers, make sure the virtual environment is activated and all dependencies are installed (see Prerequisites section above). Each MCP server can be run independently, and they will listen for incoming requests on their respective ports.
+You can activate the virtual environment with the following command:
+
+```bash
+source .venv/bin/activate
+```
+
 ### UDA Hub MCP Server
+
+This server provides tools to interact with the UDA Hub database, which contains information about users, accounts, and knowledge entries.
+Run this server with the following command:
+
+```bash
+python -m starter.mcp_servers.udahub_mcp
+```
 
 | Name | Type | Description | Arguments | Tags | ReadOnly | Destructive | Idempotent |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -25,6 +43,13 @@ uv sync
 
 ### UDA Hub Knowledgebase MCP Server
 
+This server provides tools to manage and query the knowledgebase, which contains information about customers, their issues, and relevant experiences.
+Run this server with the following command:
+
+```bash
+python -m starter.mcp_servers.knowledgebase_mcp
+```
+
 | Name | Type | Description | Arguments | Tags | ReadOnly | Destructive | Idempotent |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `knowledgebase_config` | resource (`data://config`) | Configuration for the knowledgebase. | - | `monitoring`, `config` | - | - | - |
@@ -34,6 +59,13 @@ uv sync
 | `query_cultpass_experiences` | tool | Query the experiences which Cultpass offers. | `query_text: str`, `n_results: int (0..10)` | `cultpass`, `query`, `knowledge`, `experiences`, `browsing` | yes | no | yes |
 
 ### Cultpass MCP Server
+
+This server provides tools to interact with the Cultpass database, which contains information about users, their subscriptions, reservations, and available experiences.
+Run this server with the following command:
+
+```bash
+python -m starter.mcp_servers.cultpass_mcp
+```
 
 | Name | Type | Description | Arguments | Tags | ReadOnly | Destructive | Idempotent |
 | --- | --- | --- | --- | --- | --- | --- | --- |
