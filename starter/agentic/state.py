@@ -25,4 +25,6 @@ class UdaHubState(MessagesState, total=False):
     is_enriched: bool
     terminate_chat: bool
     last_printed_idx: int
+    has_pending_messages: bool
+    need_user_input: bool
     worker: Optional[str]

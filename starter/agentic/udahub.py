@@ -11,7 +11,7 @@ from starter.agentic.nodes.validation import validation_node
 from starter.agentic.nodes.enrichment import enrichment_node
 from starter.agentic.nodes.supervisor import supervisor_node
 from starter.agentic.nodes.memorization import memorization_node
-from starter.agentic.nodes.chat_output import chat_output_node
+from starter.agentic.nodes.chat import chat_node
 from starter.agentic.agents.browsing import browsing_agent_node
 from starter.agentic.agents.escalate_to_human import escalate_to_human_agent_node
 from starter.agentic.agents.faq import faq_agent_node
@@ -123,45 +123,34 @@ class UdaHubAgent:
             graph.add_node(node=agent["name"], action=agent["action"])
 
         graph.add_node(node="memorize", action=memorization_node)
-        graph.add_node(node="chat_output", action=chat_output_node)
+        graph.add_node(node="chat", action=chat_node)
 
         # Define Edges
         graph.add_edge(START, "validation")
-        graph.add_conditional_edges(
-            source="validation",
-            path=self._after_validation,
-            path_map={
-                "enrich": "enrichment",
-                "end": "chat_output",
-            },
-        )
+        graph.add_edge("validation", "enrichment")
         graph.add_edge("enrichment", "supervisor")
 
         supervisor_path_map = {agent["name"]: agent["name"] for agent in self.agents}
         supervisor_path_map["escalate_to_human"] = "escalate_to_human"
-        supervisor_path_map["done"] = "memorize"
+        supervisor_path_map["chat"] = "chat"
+        supervisor_path_map["end"] = "memorize"
         graph.add_conditional_edges(
             source="supervisor",
-            path=self._edge_from_supervisor,
+            path=self._supervisor_handoff,
             path_map=supervisor_path_map,
         )
 
         for agent in self.agents:
             graph.add_edge(agent["name"], "supervisor")
 
-        graph.add_edge("escalate_to_human", "memorize")
-        graph.add_edge("memorize", "chat_output")
-        graph.add_edge("chat_output", END)
+        graph.add_edge("chat", "supervisor")
+        graph.add_edge("escalate_to_human", "supervisor")
+        graph.add_edge("memorize", END)
 
         checkpointer = MemorySaver()
         return graph.compile(checkpointer=checkpointer)
 
-    def _after_validation(self, state: UdaHubState) -> str:
-        if state.get("task", {}).get("status") == "failed":
-            return "end"
-        return "enrich"
-
-    def _edge_from_supervisor(self, state: UdaHubState) -> str:
+    def _supervisor_handoff(self, state: UdaHubState) -> str:
         return state.get("worker") or "escalate_to_human"
 
     def _build_mcp_client(self, mcp_servers: McpServerList):
@@ -199,6 +188,7 @@ class UdaHubAgent:
                 account_id=account_id,
                 external_user_id=exteranal_user_id,
             ),
+            need_user_input=True,
         )
         available_agents = {
             agent["name"]: agent["description"] for agent in self.agents
@@ -214,20 +204,7 @@ class UdaHubAgent:
         }
 
         print(f"Thread ID: {thread_id}\n")
-        while True:
-            # Invoke graph
-            state = await self.graph.ainvoke(state, config=config)
-
-            # End Chat if necessary
-            if state.get("terminate_chat", False):
-                break
-
-            message = chat_interface.next_message()
-            if not message:
-                break
-
-            # Add User Message
-            state["messages"] = add_messages(state["messages"], [HumanMessage(message)])
+        state = await self.graph.ainvoke(state, config=config)
 
 
 if __name__ == "__main__":
