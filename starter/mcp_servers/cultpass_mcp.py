@@ -189,7 +189,7 @@ def upgrade_subscription(user: GetUserArguments) -> dict:
 @mcp.tool(
     name="get_cultpass_reservations",
     description="Retrieve reservations for a user from the Cultpass database.",
-    tags=set(["cultpass", "reservations", "details"]),
+    tags=set(["cultpass", "reservation", "details"]),
     meta={"author": "cultpass", "version": "1.0"},
     annotations={
         "readOnlyHint": True,
@@ -200,7 +200,11 @@ def upgrade_subscription(user: GetUserArguments) -> dict:
 def get_reservations(user: GetUserArguments) -> list[dict]:
     engine = create_engine(CULTPASS_DB_PATH)
     with Session(engine) as session:
-        statement = select(Reservation).where(Reservation.user_id == user.user_id)
+        statement = (
+            select(Reservation)
+            .where(Reservation.user_id == user.user_id)
+            .options(selectinload(Reservation.experience))
+        )
         results = session.execute(statement).scalars().all()
         reservations = []
         for result in results:
@@ -212,6 +216,14 @@ def get_reservations(user: GetUserArguments) -> list[dict]:
                     "status": result.status,
                     "created_at": result.created_at.isoformat(),
                     "updated_at": result.updated_at.isoformat(),
+                    "experience": {
+                        "experience_id": result.experience.experience_id,
+                        "title": result.experience.title,
+                        "description": result.experience.description,
+                        "location": result.experience.location,
+                        "when": result.experience.when.isoformat(),
+                        "is_premium": result.experience.is_premium,
+                    },
                 }
             )
 
@@ -227,7 +239,7 @@ class CancelReservationArguments(BaseModel):
 @mcp.tool(
     name="cancel_cultpass_reservation",
     description="Cancel a reservation for a user in the Cultpass database.",
-    tags=set(["cultpass", "reservations", "cancel"]),
+    tags=set(["cultpass", "reservation", "cancel"]),
     meta={"author": "cultpass", "version": "1.0"},
     annotations={
         "readOnlyHint": False,
@@ -268,7 +280,7 @@ class MakeReservationArguments(BaseModel):
 @mcp.tool(
     name="make_cultpass_reservation",
     description="Make a reservation for a user in the Cultpass database.",
-    tags=set(["cultpass", "reservations", "create"]),
+    tags=set(["cultpass", "reservation", "create"]),
     meta={"author": "cultpass", "version": "1.0"},
     annotations={
         "readOnlyHint": False,
