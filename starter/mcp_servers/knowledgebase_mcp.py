@@ -155,7 +155,7 @@ class UdaHubKnowledgeBaseQuery(KnowledgeBaseQuery):
 @mcp.tool(
     name="query_udahub_knowledgebase",
     description="Query the UdaHub knowledgebase for learnings related to a given customer.",
-    tags=set(["cultpass", "query", "knowledge"]),
+    tags=set(["cultpass", "query", "knowledge", "faq"]),
     meta={"author": "UDAHub Knowledge Base", "version": "1.0"},
     annotations={
         "readOnlyHint": True,
@@ -168,7 +168,7 @@ def query_udahub_knowledgebase(query: UdaHubKnowledgeBaseQuery) -> list[dict] | 
     collection = chroma_client.get_collection(name="udahub")
     query_result = collection.query(
         query_texts=[query.query_text],
-        where={"acc": query.account_id},
+        where={"account_id": query.account_id},
         n_results=query.n_results,
     )
 
