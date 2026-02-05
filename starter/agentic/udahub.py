@@ -2,6 +2,7 @@ from anyio.abc import TaskStatus
 from typing import Literal, Protocol, Optional, Sequence
 from langgraph.graph import START, END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
+from langchain.messages import AIMessage
 from langchain_mcp_adapters.client import MultiServerMCPClient, StreamableHttpConnection
 from starter.agentic.state import UdaHubState, UserContext
 from starter.agentic.nodes.validation import validation_node
@@ -21,6 +22,9 @@ class UserInterface(Protocol):
     def next_message(self) -> Optional[str]:
         """Return next user message, or None if the stream is finished."""
 
+    def read_message(self, message: str):
+        """Read a message"""
+
 
 class ListUserInterface:
     messages: Sequence[str]
@@ -33,6 +37,9 @@ class ListUserInterface:
         self._i += 1
         return msg
 
+    def read_message(self, message: str):
+        print(message)
+
 
 class ConsoleUserInterface:
     def next_message(self) -> str | None:
@@ -40,6 +47,9 @@ class ConsoleUserInterface:
         if msg.lower() in {"exit", "quit"}:
             return None
         return msg
+
+    def read_message(self, message: str):
+        print(message)
 
 
 def enrichment_agent(state: UdaHubState) -> UdaHubState:
@@ -111,16 +121,25 @@ class UdaHubAgent:
             temperature=0.0,
         )
 
+    def _print_pending_ai_messages(
+        self, messages: list, last_printed_idx: int, ui: UserInterface
+    ) -> int:
+        ai_messages: list[AIMessage] = [m for m in messages if isinstance(m, AIMessage)]
+        for i in range(last_printed_idx + 1, len(ai_messages)):
+            ui.read_message(str(ai_messages[i].content))
+
+        return len(ai_messages) - 1
+
     async def start_chat(
         self,
-        message: str,
         account_id: str,
         exteranal_user_id: str,
         ticket_id: Optional[str] = None,
         thread_id: str = str(uuid.uuid4()),
         user_interface: UserInterface = ConsoleUserInterface(),
     ):
-        print("Starting UdaHubAgent chat...")
+        print("(You can quit the chat by sending an empty message)\n")
+        print("Starting UDA Hub chat...")
         tools = await self.mcp_client.get_tools()
 
         state = UdaHubState(
@@ -129,6 +148,7 @@ class UdaHubAgent:
                 account_id=account_id,
                 external_user_id=exteranal_user_id,
             ),
+            last_printed_ai_message=-1,
         )
         config = {
             "configurable": {
@@ -137,8 +157,27 @@ class UdaHubAgent:
                 "llm": self.llm,
             },
         }
-        result_state = await self.graph.ainvoke(state, config=config)
-        print(result_state)
+
+        print(f"Thread ID: {thread_id}\n")
+        while True:
+            # Invoke graph
+            state = await self.graph.ainvoke(state, config=config)
+
+            # Print all pending AI Messages
+            idx = self._print_pending_ai_messages(
+                messages=state.get("messages", []),
+                last_printed_idx=state.get("last_printed_ai_message", -1),
+                ui=user_interface,
+            )
+            state["last_printed_ai_message"] = idx
+
+            # End Chat if necessary
+            if state.get("terminate_chat", False):
+                break
+
+            message = user_interface.next_message()
+            if not message:
+                break
 
 
 if __name__ == "__main__":
@@ -146,7 +185,6 @@ if __name__ == "__main__":
     for i in range(1):
         asyncio.run(
             agent.start_chat(
-                message="I want to make a holiday at the beach.",
                 account_id="cultpass",
                 exteranal_user_id="f556c0",
                 thread_id="test_thread",

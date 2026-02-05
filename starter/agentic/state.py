@@ -22,3 +22,5 @@ class UdaHubState(MessagesState, total=False):
     task: TaskContext
     is_validated: bool
     is_enriched: bool
+    terminate_chat: bool
+    last_printed_ai_message: int

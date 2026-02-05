@@ -88,6 +88,7 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
         return {
             "messages": [AIMessage(content="The provided account ID is invalid.")],
             "task": TaskContext(status="failed", error="Invalid account ID"),
+            "terminate_chat": True,
         }
 
     # Validate the provided user
@@ -117,6 +118,7 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
                     content=f"I was unable to validate your identity. If this issue persists please reach out to '{account_id}'."
                 )
             ],
+            "terminate_chat": True,
             "task": TaskContext(status="failed", error=f"{response.error_message}"),
         }
 
@@ -134,8 +136,8 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
     if response.uda_hub_user_created:
         messages.append(
             AIMessage(
-                "It seems like I am serving you the first time. I created a new UDA Hub user for you to keep context."
-                f"Your user ID with me is {response.uda_hub_user_id}"
+                "It seems like I am serving you the first time. I created a new UDA Hub user for you to keep context.\n"
+                f"Your user ID with me is {response.uda_hub_user_id}\n"
             )
         )
 
