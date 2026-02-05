@@ -28,6 +28,11 @@ async def supervisor_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
     if state.get("need_user_input", False):
         return {"messages": [], "worker": "read_message"}
 
+    user = state.get("user", {})
+    account_id = user.get("account_id", "")
+    account_name = user.get("account_name", account_id)
+    account_description = user.get("account_description", "")
+
     configurable = config.get("configurable", {})
     llm = configurable.get("llm")
     available_agents = configurable.get("available_agents", [])
@@ -38,7 +43,9 @@ async def supervisor_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
     agent = create_agent(
         model=llm,
         system_prompt=SystemMessage(f"""
-        You are a supervisor agent inside a helpdesk chatbot.
+        You are a supervisor agent inside a helpdesk chatbot for {account_name} (account_id={account_id}):
+        {account_description}
+
         You need to analyze the user request and forward it to the most suitable worker agent, which will take over.
         These are the available worker agents:
         {agents_list}
