@@ -1,10 +1,11 @@
-from typing import Optional
+from typing import Optional, TypedDict, Callable, Protocol
 from langgraph.graph import START, END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 from langchain.messages import HumanMessage
 from langgraph.graph.message import add_messages
 from langchain_mcp_adapters.client import MultiServerMCPClient, StreamableHttpConnection
 from langchain_mcp_adapters.sessions import Connection
+from langchain_core.runnables import RunnableConfig
 from starter.agentic.state import UdaHubState, UserContext
 from starter.agentic.nodes.validation import validation_node
 from starter.agentic.nodes.enrichment import enrichment_node
@@ -35,7 +36,64 @@ class McpServerList:
         return MultiServerMCPClient(self.servers)
 
 
+class AgentAction(Protocol):
+    def __call__(self, state: UdaHubState, config: RunnableConfig) -> UdaHubState: ...
+
+
+class UdaHubAgent(TypedDict):
+    name: str
+    description: str
+    action: AgentAction
+
+
+def not_yet_implemented(state: UdaHubState, config: RunnableConfig) -> UdaHubState:
+    print("Not yet implemented")
+    return state
+
+
+FAQ_AGENT = UdaHubAgent(
+    name="faq",
+    description="An agent that answers common questions.",
+    action=not_yet_implemented,
+)
+RESERVATION_AGENT = UdaHubAgent(
+    name="reservation",
+    description="An agent that handles everything related to reservations.",
+    action=not_yet_implemented,
+)
+SUBSCRIPTION_AGENT = UdaHubAgent(
+    name="subscription",
+    description="An agent that handles everything related to a users subscription.",
+    action=not_yet_implemented,
+)
+BROWSING_AGENT = UdaHubAgent(
+    name="browsing",
+    description="An agent that helps browsing through the offerings of a customer.",
+    action=not_yet_implemented,
+)
+
+DEFAULT_AGENT_SET = [
+    FAQ_AGENT,
+    RESERVATION_AGENT,
+    SUBSCRIPTION_AGENT,
+    BROWSING_AGENT,
+]
+
+
 class UdaHubAgent:
+    def __init__(
+        self,
+        mcp_servers: McpServerList = McpServerList(),
+        agents: list[UdaHubAgent] = DEFAULT_AGENT_SET,
+    ):
+        self.graph = self._build_graph()
+        self.mcp_client = self._build_mcp_client(mcp_servers)
+        self.agents = agents
+        self.llm = ChatOpenAI(
+            model="gpt-4o-mini",
+            temperature=0.0,
+        )
+
     def _build_graph(self):
         graph = StateGraph(UdaHubState)
 
@@ -52,6 +110,10 @@ class UdaHubAgent:
             node="supervisor",
             action=supervisor_node,
         )
+
+        for agent in self.agents:
+            graph.add_node(node=agent.name, action=agent.action)
+
         graph.add_node(node="memorize", action=memorization_node)
         graph.add_node(node="chat_output", action=chat_output_node)
 
@@ -93,14 +155,6 @@ class UdaHubAgent:
                 ),
             )
             .create_client()
-        )
-
-    def __init__(self, mcp_servers: McpServerList):
-        self.graph = self._build_graph()
-        self.mcp_client = self._build_mcp_client(mcp_servers)
-        self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
-            temperature=0.0,
         )
 
     async def start_chat(
