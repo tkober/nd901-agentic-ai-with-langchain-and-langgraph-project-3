@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict, Callable, Protocol
+from typing import Optional, TypedDict, Protocol, Awaitable
 from langgraph.graph import START, END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 from langchain.messages import HumanMessage
@@ -12,6 +12,11 @@ from starter.agentic.nodes.enrichment import enrichment_node
 from starter.agentic.nodes.supervisor import supervisor_node
 from starter.agentic.nodes.memorization import memorization_node
 from starter.agentic.nodes.chat_output import chat_output_node
+from starter.agentic.agents.browsing import browsing_agent_node
+from starter.agentic.agents.escalate_to_human import escalate_to_human_agent_node
+from starter.agentic.agents.faq import faq_agent_node
+from starter.agentic.agents.reservation import reservation_agent_node
+from starter.agentic.agents.subscription import subscription_agent_node
 from starter.agentic.chat_interface import ChatInterface, ConsoleChatInterface
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
@@ -37,7 +42,9 @@ class McpServerList:
 
 
 class AgentAction(Protocol):
-    def __call__(self, state: UdaHubState, config: RunnableConfig) -> UdaHubState: ...
+    def __call__(
+        self, state: UdaHubState, config: RunnableConfig
+    ) -> UdaHubState | Awaitable[UdaHubState]: ...
 
 
 class UdaHubAgent(TypedDict):
@@ -54,22 +61,22 @@ def not_yet_implemented(state: UdaHubState, config: RunnableConfig) -> UdaHubSta
 FAQ_AGENT = UdaHubAgent(
     name="faq",
     description="An agent that answers common questions.",
-    action=not_yet_implemented,
+    action=faq_agent_node,
 )
 RESERVATION_AGENT = UdaHubAgent(
     name="reservation",
     description="An agent that handles everything related to reservations.",
-    action=not_yet_implemented,
+    action=reservation_agent_node,
 )
 SUBSCRIPTION_AGENT = UdaHubAgent(
     name="subscription",
     description="An agent that handles everything related to a users subscription.",
-    action=not_yet_implemented,
+    action=subscription_agent_node,
 )
 BROWSING_AGENT = UdaHubAgent(
     name="browsing",
     description="An agent that helps browsing through the offerings of a customer.",
-    action=not_yet_implemented,
+    action=browsing_agent_node,
 )
 
 DEFAULT_AGENT_SET = [
@@ -86,9 +93,9 @@ class UdaHubAgent:
         mcp_servers: McpServerList = McpServerList(),
         agents: list[UdaHubAgent] = DEFAULT_AGENT_SET,
     ):
+        self.agents = agents
         self.graph = self._build_graph()
         self.mcp_client = self._build_mcp_client(mcp_servers)
-        self.agents = agents
         self.llm = ChatOpenAI(
             model="gpt-4o-mini",
             temperature=0.0,
@@ -110,9 +117,10 @@ class UdaHubAgent:
             node="supervisor",
             action=supervisor_node,
         )
+        graph.add_node(node="escalate_to_human", action=escalate_to_human_agent_node)
 
         for agent in self.agents:
-            graph.add_node(node=agent.name, action=agent.action)
+            graph.add_node(node=agent["name"], action=agent["action"])
 
         graph.add_node(node="memorize", action=memorization_node)
         graph.add_node(node="chat_output", action=chat_output_node)
@@ -128,7 +136,20 @@ class UdaHubAgent:
             },
         )
         graph.add_edge("enrichment", "supervisor")
-        graph.add_edge("supervisor", "memorize")
+
+        supervisor_path_map = {agent["name"]: agent["name"] for agent in self.agents}
+        supervisor_path_map["escalate_to_human"] = "escalate_to_human"
+        supervisor_path_map["done"] = "memorize"
+        graph.add_conditional_edges(
+            source="supervisor",
+            path=self._edge_from_supervisor,
+            path_map=supervisor_path_map,
+        )
+
+        for agent in self.agents:
+            graph.add_edge(agent["name"], "supervisor")
+
+        graph.add_edge("escalate_to_human", "memorize")
         graph.add_edge("memorize", "chat_output")
         graph.add_edge("chat_output", END)
 
@@ -139,6 +160,9 @@ class UdaHubAgent:
         if state.get("task", {}).get("status") == "failed":
             return "end"
         return "enrich"
+
+    def _edge_from_supervisor(self, state: UdaHubState) -> str:
+        return state.get("worker") or "escalate_to_human"
 
     def _build_mcp_client(self, mcp_servers: McpServerList):
         return (
@@ -176,12 +200,16 @@ class UdaHubAgent:
                 external_user_id=exteranal_user_id,
             ),
         )
+        available_agents = {
+            agent["name"]: agent["description"] for agent in self.agents
+        }
         config = {
             "configurable": {
                 "thread_id": thread_id,
                 "mcp_tools": tools,
                 "llm": self.llm,
                 "chat_interface": chat_interface,
+                "available_agents": available_agents,
             },
         }
 

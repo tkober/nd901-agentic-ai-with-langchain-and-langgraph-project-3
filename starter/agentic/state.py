@@ -1,7 +1,7 @@
-from typing import Literal, TypedDict
+from typing import Literal, TypedDict, Optional
 from langgraph.graph.message import MessagesState
 
-TaskStatus = Literal["pending", "in_progress", "", "completed", "failed"]
+TaskStatus = Literal["in_progress", "completed", "failed"]
 
 
 class UserContext(TypedDict, total=False):
@@ -24,3 +24,4 @@ class UdaHubState(MessagesState, total=False):
     is_enriched: bool
     terminate_chat: bool
     last_printed_idx: int
+    worker: Optional[str]
