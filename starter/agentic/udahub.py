@@ -1,6 +1,8 @@
 from typing import Optional
 from langgraph.graph import START, END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
+from langchain.messages import HumanMessage
+from langgraph.graph.message import add_messages
 from langchain_mcp_adapters.client import MultiServerMCPClient, StreamableHttpConnection
 from starter.agentic.state import UdaHubState, UserContext
 from starter.agentic.nodes.validation import validation_node
@@ -124,6 +126,9 @@ class UdaHubAgent:
             message = chat_interface.next_message()
             if not message:
                 break
+
+            # Add User Message
+            state["messages"] = add_messages(state["messages"], [HumanMessage(message)])
 
 
 if __name__ == "__main__":
