@@ -7,6 +7,8 @@ Priority = Literal["normal", "high", "critical"]
 
 class UserContext(TypedDict, total=False):
     account_id: str
+    account_name: Optional[str]
+    account_description: Optional[str]
     external_user_id: str
     udahub_user_id: str
     full_name: str

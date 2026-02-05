@@ -7,6 +7,7 @@ from langchain.messages import AIMessage, SystemMessage
 from langgraph.errors import GraphRecursionError
 from starter.agentic.state import UdaHubState, TaskContext
 from starter.agentic.mcp_tool_utils import McpToolFilter
+from starter.data.udahub_db import get_account_by_id
 
 
 class UserValidationResult(BaseModel):
@@ -80,11 +81,8 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
     external_user_id = user.get("external_user_id", "")
 
     # Check that the provided account id belongs to a customer of UDA Hub
-    account_lookup_tool = McpToolFilter(tools).by_name("get_udahub_account").get_first()
-    response = await account_lookup_tool.ainvoke(
-        {"account": {"account_id": account_id}}
-    )
-    if len(response) == 0:
+    account = get_account_by_id(account_id)
+    if account is None:
         return {
             "messages": [AIMessage(content="The provided account ID is invalid.")],
             "task": TaskContext(status="failed", error="Invalid account ID"),
@@ -130,7 +128,7 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
         messages.append(
             AIMessage(
                 f"Welcome {response.full_name}!\n"
-                f"I am UDA Hub and I will be helping you on behalf of {response.account_id}."
+                f"I am UDA-Hub and I will be helping you on behalf of {account.get('account_name', account_id)}."
             )
         )
 
@@ -149,6 +147,8 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
         "has_pending_messages": True,
         "user": {
             "account_id": account_id,
+            "account_name": account.get("account_name"),
+            "account_description": account.get("account_description"),
             "external_user_id": external_user_id,
             "udahub_user_id": f"{response.uda_hub_user_id}",
             "full_name": f"{response.full_name}",
