@@ -52,6 +52,7 @@ async def browsing_agent_node(
         - If you cannot find what the users looking for, say that you are sorry and that you cannot help with this request.
         - If the user askes to do something that is outside of your capabilities, set the 'request_handoff' flag to true in your response.
         - Always ask the user if the request is complete or if they need further assistance. Only if they confirm that they are done, set the 'task_complete' flag to true in your response.
+        - When you mention a product make sure to include the product ID in your response. Be careful to not mix it up with ChromaDB IDs.
     """)
     agent = create_agent(
         model=llm,
@@ -60,7 +61,7 @@ async def browsing_agent_node(
         response_format=BrowsingAgentResponse,
     )
     response = await agent.ainvoke(
-        {"messages": state.get("messages", [])}, config={"recursion_limit": 5}
+        {"messages": state.get("messages", [])}, config={"recursion_limit": 10}
     )
     structured_response: BrowsingAgentResponse = response["structured_response"]
 

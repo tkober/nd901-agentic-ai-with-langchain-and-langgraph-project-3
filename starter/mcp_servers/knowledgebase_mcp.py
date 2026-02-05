@@ -120,9 +120,9 @@ def sync_udahub_knowledgebase():
 
 
 class KnowledgeBaseEntry(BaseModel):
-    collection: str = Field(description="The collection this entry belongs to")
-    id: str = Field(
-        description="The unique identifier for this knowledge entry in the collection"
+    collection: str = Field(description="The ChromaDB collection this entry belongs to")
+    chromadb_id: str = Field(
+        description="The unique ChromaDB identifier for this knowledge entry in the collection."
     )
     title: str = Field(description="The title of the knowledge entry")
     content: str = Field(description="The content of the knowledge entry")
@@ -176,7 +176,7 @@ def query_udahub_knowledgebase(query: UdaHubKnowledgeBaseQuery) -> list[dict] | 
     for i in range(len(query_result["ids"][0])):
         entry = UdaHubKnowledgeEntry(
             collection="udahub",
-            id=query_result["ids"][0][i],
+            chromadb_id=query_result["ids"][0][i],
             title=query_result["metadatas"][0][i]["title"],
             content=query_result["documents"][0][i],
             article_id=query_result["metadatas"][0][i]["article_id"],
@@ -216,7 +216,7 @@ def query_cultpass_experiences(query: KnowledgeBaseQuery) -> list[dict] | dict:
     for i in range(len(query_result["ids"][0])):
         entry = CultpassExperience(
             collection="cultpass",
-            id=query_result["ids"][0][i],
+            chromadb_id=query_result["ids"][0][i],
             title=query_result["metadatas"][0][i]["title"],
             content=query_result["documents"][0][i],
             experience_id=query_result["metadatas"][0][i]["experience_id"],

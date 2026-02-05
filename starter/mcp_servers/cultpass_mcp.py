@@ -42,7 +42,7 @@ def yield_message(message: str) -> dict:
 @mcp.tool(
     name="get_cultpass_user",
     description="Retrieve user details from the Cultpass database.",
-    tags=set(["user", "details", "validation"]),
+    tags=set(["cultpass", "user", "details", "validation"]),
     meta={"author": "cultpass", "version": "1.0"},
     annotations={
         "readOnlyHint": True,
@@ -88,7 +88,7 @@ def get_cultpass_user(user: GetUserArguments) -> dict:
 @mcp.tool(
     name="get_cultpass_reservations",
     description="Retrieve reservations for a user from the Cultpass database.",
-    tags=set(["reservations", "details"]),
+    tags=set(["cultpass", "reservations", "details"]),
     meta={"author": "cultpass", "version": "1.0"},
     annotations={
         "readOnlyHint": True,
@@ -126,7 +126,7 @@ class CancelReservationArguments(BaseModel):
 @mcp.tool(
     name="cancel_cultpass_reservation",
     description="Cancel a reservation for a user in the Cultpass database.",
-    tags=set(["reservations", "cancel"]),
+    tags=set(["cultpass", "reservations", "cancel"]),
     meta={"author": "cultpass", "version": "1.0"},
     annotations={
         "readOnlyHint": False,
@@ -167,7 +167,7 @@ class MakeReservationArguments(BaseModel):
 @mcp.tool(
     name="make_cultpass_reservation",
     description="Make a reservation for a user in the Cultpass database.",
-    tags=set(["reservations", "create"]),
+    tags=set(["cultpass", "reservations", "create"]),
     meta={"author": "cultpass", "version": "1.0"},
     annotations={
         "readOnlyHint": False,
@@ -247,7 +247,7 @@ class GetExperienceArguments(BaseModel):
 @mcp.tool(
     name="get_cultpass_experience",
     description="Retrieve experience details from the Cultpass database.",
-    tags=set(["experience", "details"]),
+    tags=set(["cultpass", "experience", "details", "browsing"]),
     meta={"author": "cultpass", "version": "1.0"},
     annotations={
         "readOnlyHint": True,
