@@ -7,6 +7,7 @@ from langchain_core.runnables import RunnableConfig
 from langchain_core.runnables.graph import MermaidDrawMethod
 from starter.agentic.state import UdaHubState, UserContext
 from starter.agentic.nodes.knowledgebase_sync import knowledgebase_sync_node
+from starter.agentic.nodes.knowledgebase_learning import knowledgebase_learning_node
 from starter.agentic.nodes.validation import validation_node
 from starter.agentic.nodes.enrichment import enrichment_node
 from starter.agentic.nodes.supervisor import supervisor_node
@@ -120,6 +121,9 @@ class UdaHubAgent:
         graph.add_node(node="memorize", action=memorization_node)
         graph.add_node(node="read_message", action=read_message_node)
         graph.add_node(node="send_message", action=send_message_node)
+        graph.add_node(
+            node="knowledgebase_learning", action=knowledgebase_learning_node
+        )
 
         # Define Edges
         graph.add_edge(START, "knowledgebase_sync")
@@ -144,7 +148,8 @@ class UdaHubAgent:
         graph.add_edge("read_message", "supervisor")
         graph.add_edge("send_message", "supervisor")
         graph.add_edge("escalate_to_human", "supervisor")
-        graph.add_edge("memorize", END)
+        graph.add_edge("memorize", "knowledgebase_learning")
+        graph.add_edge("knowledgebase_learning", END)
 
         checkpointer = MemorySaver()
         return graph.compile(checkpointer=checkpointer)
