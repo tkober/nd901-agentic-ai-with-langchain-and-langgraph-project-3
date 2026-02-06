@@ -5,7 +5,7 @@
 UDA-Hub, a Universal Decision Agent, is an a Help Desk assistant driven by agentic AI. 
 It is designed to plug into existing systems and help the users of those systems with their help desk requests.
 UDA-Hub achieves this by accessing both UDA-Hub's internal knowledgebase and external tools that connect to the systems used by the customers.
-A wide range of predefine worker agents is provided by UDA-Hub, but each customer can define which agents are pugged into their instance of UDA-Hub, defining what the agent is capable of doing for their users.
+A wide range of predefined worker agents is provided by UDA-Hub, but each customer can define which agents are plugged into their instance of UDA-Hub, defining what the agent is capable of doing for their users.
 
 ### Showcase: Cultpass Card
 
@@ -16,17 +16,25 @@ Of course there are also more general FAQ-type questions that users might have, 
 
 ### Architecture
 
+UDA-Hub provisions an architecture that allows customers to plug into UDA-Hub and delegate help desk requests to the agent, which can then use the tools provided by the customer to perform the necessary actions to resolve the user's request.
+
 ![alt text](images/architecture.svg)
 
 
 ### Short-term Memory
 
-
+The UDA-Hub Chat Agent utilizes an in-memory checkpointing mechanism. That means as long as the session has not been terminated, it allows any user to continue a conversation without losing context even after terminating the chat.
+This also allows faster response times as the agent does not need to go through the overhead of validating the user and retrieving context from long-term memory on every single request.
 
 ### Long-term Memory
 
+Additionally, UDA-Hub also stores the conversation history in a persistent store encapsulated in tickets. 
+Using the ticket ID, a user can continue long-running conversations even after the in-memory checkpoint has been terminated.
 
+### Learning and Knowledge Growth
 
+Upon completion of a ticket UDA-Hub also tries to extract new learnings from the conversation and stores these in a knowledgebase.
+This allows the agent to grow its knowledge over time and provide better answers to the users.
 
 ## Prerequisites
 
