@@ -72,6 +72,101 @@ python -m starter.mcp_servers.cultpass_mcp &
 wait
 ```
 
+After starting the MCP servers, you can play can set up the agent and start the chat loop with the following code:
+```python
+from starter.agentic.udahub import UdaHubAgent, McpServerList
+from langchain_mcp_adapters.client import StreamableHttpConnection
+
+if __name__ == "__main__":
+    # The mcp server(s) of the customer support system(s) the agent should interact with.
+    mcp_servers = McpServerList().add_connection(
+        "cultpass",
+        StreamableHttpConnection(
+            url="http://localhost:8003/mcp", transport="streamable_http"
+        ),
+    )
+
+    # Initialize the agent with the mcp server connections
+    agent = UdaHubAgent(mcp_servers)
+
+    # Start the agent's chat loop
+    agent.start_chat(
+        account_id="cultpass",
+        exteranal_user_id="f556c0",
+        thread_id="USER_THREAD_ID",
+    )
+```
+
+### Chat Interface
+
+In order to allow simple interactions with the agent, three different chat interfaces are provided in the in [chat_interface.py](starter/agentic/chat_interface.py).
+
+The most basic one is a simple command line interface, which allows you to send messages to the agent and receive responses in the terminal. This is also the default interface that is used when you run the `UdaHubAgent` with the `start_chat` method.
+
+```python
+    # [...]
+    from starter.agentic.chat_interface import ConsoleChatInterface
+
+    chat_interface = ConsoleChatInterface()
+
+    # Start the agent's chat loop
+    agent.start_chat(
+        account_id="cultpass",
+        exteranal_user_id="f556c0",
+        thread_id="USER_THREAD_ID",
+        chat_interface=chat_interface,
+    )
+```
+
+For debugging purposes, there is the ListChatInterface, which holds a list of predefined messages, that will be given to the agent upon request.
+
+```python
+    # [...]
+    from starter.agentic.chat_interface import ListChatInterface
+
+    predefined_messages = [
+        "Hello, I would like to book an experience.",
+        "Can you recommend something for me?",
+        "I would like to cancel my subscription.",
+    ]
+    chat_interface = ListChatInterface(predefined_messages)
+
+    # Start the agent's chat loop
+    agent.start_chat(
+        account_id="cultpass",
+        exteranal_user_id="f556c0",
+        thread_id="USER_THREAD_ID",
+        chat_interface=chat_interface,
+    )
+```
+
+For complex testing and benchmarking, there is the LlmChatInterface, which uses a language model to generate messages for the agent based on a predefined instructions prompt.
+
+```python
+    # [...]
+    from starter.agentic.chat_interface import LlmChatInterface
+    from langchain_openai import ChatOpenAI
+
+    llm = ChatOpenAI(
+        model="gpt-4.1",
+        temperature=0.0,
+    )
+    chat_interface = LlmChatInterface(
+        llm=llm,
+        instructions="You want to book a cultural experience in Sao Paulo, Brazil. "
+        "You like to dance. You are not willing to upgrade your subscription tier. "
+        "In case there is no suitable non-premium experience available, you want to end the conversation.",
+    )
+
+    # Start the agent's chat loop
+    agent.start_chat(
+        account_id="cultpass",
+        exteranal_user_id="f556c0",
+        thread_id="USER_THREAD_ID",
+        chat_interface=chat_interface,
+    )
+```
+
 
 
 ## Showcase
