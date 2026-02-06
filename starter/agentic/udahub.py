@@ -6,6 +6,7 @@ from langchain_mcp_adapters.sessions import Connection
 from langchain_core.runnables import RunnableConfig
 from langchain_core.runnables.graph import MermaidDrawMethod
 from starter.agentic.state import UdaHubState, UserContext
+from starter.agentic.nodes.knowledgebase_sync import knowledgebase_sync_node
 from starter.agentic.nodes.validation import validation_node
 from starter.agentic.nodes.enrichment import enrichment_node
 from starter.agentic.nodes.supervisor import supervisor_node
@@ -18,7 +19,6 @@ from starter.agentic.agents.faq import faq_agent_node
 from starter.agentic.agents.reservation import reservation_agent_node
 from starter.agentic.agents.subscription import subscription_agent_node
 from starter.agentic.chat_interface import ChatInterface, ConsoleChatInterface
-from starter.agentic.mcp_tool_utils import McpToolFilter
 from langchain_openai import ChatOpenAI
 from IPython.display import Image
 from dotenv import load_dotenv
@@ -108,18 +108,10 @@ class UdaHubAgent:
         graph = StateGraph(UdaHubState)
 
         # Define Nodes
-        graph.add_node(
-            node="validation",
-            action=validation_node,
-        )
-        graph.add_node(
-            node="enrichment",
-            action=enrichment_node,
-        )
-        graph.add_node(
-            node="supervisor",
-            action=supervisor_node,
-        )
+        graph.add_node(node="knowledgebase_sync", action=knowledgebase_sync_node)
+        graph.add_node(node="validation", action=validation_node)
+        graph.add_node(node="enrichment", action=enrichment_node)
+        graph.add_node(node="supervisor", action=supervisor_node)
         graph.add_node(node="escalate_to_human", action=escalate_to_human_agent_node)
 
         for agent in self.agents:
@@ -130,7 +122,8 @@ class UdaHubAgent:
         graph.add_node(node="send_message", action=send_message_node)
 
         # Define Edges
-        graph.add_edge(START, "validation")
+        graph.add_edge(START, "knowledgebase_sync")
+        graph.add_edge("knowledgebase_sync", "validation")
         graph.add_edge("validation", "enrichment")
         graph.add_edge("enrichment", "supervisor")
 
@@ -186,20 +179,6 @@ class UdaHubAgent:
     def print_graph_as_ascii(self):
         self.graph.get_graph().print_ascii()
 
-    async def synchronize_knowledge_base(self, tools: list):
-        sync_tools = (
-            McpToolFilter(tools)
-            .by_author("UDAHub Knowledge Base")
-            .by_tags(["sync"])
-            .get_all()
-        )
-        print("Synchronizing knowledge base...")
-        for tool in sync_tools:
-            print(f"...{tool.name}()")
-            await tool.ainvoke({})
-
-        print("Knowledge base synchronized.\n")
-
     async def start_chat(
         self,
         account_id: str,
@@ -210,7 +189,6 @@ class UdaHubAgent:
     ):
         print("(You can quit the chat by sending an empty message)\n")
         tools = await self.mcp_client.get_tools()
-        # await self.synchronize_knowledge_base(tools)
         print("\nStarting UDA Hub chat...")
 
         state = UdaHubState(
