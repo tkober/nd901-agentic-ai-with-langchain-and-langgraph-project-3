@@ -210,7 +210,7 @@ class UdaHubAgent:
     ):
         print("(You can quit the chat by sending an empty message)\n")
         tools = await self.mcp_client.get_tools()
-        await self.synchronize_knowledge_base(tools)
+        # await self.synchronize_knowledge_base(tools)
         print("\nStarting UDA Hub chat...")
 
         state = UdaHubState(
@@ -231,6 +231,7 @@ class UdaHubAgent:
                 "llm": self.llm,
                 "chat_interface": chat_interface,
                 "available_agents": available_agents,
+                "ticket_id": ticket_id,
             },
             "recursion_limit": 100,
         }

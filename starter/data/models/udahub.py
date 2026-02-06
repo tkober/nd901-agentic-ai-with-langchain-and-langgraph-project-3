@@ -62,7 +62,7 @@ class Ticket(Base):
     account_id = Column(String, ForeignKey("accounts.account_id"), nullable=False)
     user_id = Column(String, ForeignKey("users.user_id"), nullable=False)
     channel = Column(String)
-    topic = Column(String)
+    summary = Column(String)
     created_at = Column(DateTime, default=func.now())
 
     account = relationship("Account", back_populates="tickets")

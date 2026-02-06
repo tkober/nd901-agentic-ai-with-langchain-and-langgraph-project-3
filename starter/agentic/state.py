@@ -20,7 +20,6 @@ class TaskContext(TypedDict, total=False):
 
 
 class UdaHubState(MessagesState, total=False):
-    ticket_id: str
     user: UserContext
     task: TaskContext
     is_validated: bool
@@ -32,3 +31,4 @@ class UdaHubState(MessagesState, total=False):
     handoff_requested: bool
     worker: Optional[str]
     priority: Optional[Priority]
+    loaded_messages_count: Optional[int]

@@ -1,7 +1,6 @@
 from sqlalchemy import select, create_engine
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from starter.data.models.udahub import User, Account
+from starter.data.models.udahub import User, Account, Ticket, TicketMetadata
 from dotenv import load_dotenv
 
 import os
@@ -94,3 +93,34 @@ def get_account_by_id(account_id: str) -> dict | None:
             "updated_at": result.updated_at.isoformat(),
         }
         return result
+
+
+def create_ticket(
+    account_id: str,
+    user_id: str,
+    channel: str,
+    summary: str,
+    status: str,
+    tags: list[str],
+) -> str:
+    engine = create_engine(UDAHUB_DB_PATH)
+    with Session(engine) as session:
+        ticket_id = str(uuid.uuid4())
+        new_ticket = Ticket(
+            ticket_id=ticket_id,
+            account_id=account_id,
+            user_id=user_id,
+            channel=channel,
+            summary=summary,
+        )
+        session.add(new_ticket)
+
+        new_metadata = TicketMetadata(
+            ticket_id=ticket_id,
+            status=status,
+            tags=",".join(tags),
+        )
+        session.add(new_metadata)
+        session.commit()
+
+        return ticket_id
