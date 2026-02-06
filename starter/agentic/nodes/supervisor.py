@@ -41,7 +41,7 @@ async def supervisor_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
     )
 
     agent = create_agent(
-        model=llm,
+        model=llm,  # ty:ignore[invalid-argument-type]
         system_prompt=SystemMessage(f"""
         You are a supervisor agent inside a helpdesk chatbot for {account_name} (account_id={account_id}):
         {account_description}

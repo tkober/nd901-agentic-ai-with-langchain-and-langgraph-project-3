@@ -37,7 +37,7 @@ async def browsing_agent_node(
         - When you mention a product make sure to include the product ID in your response. Be careful to not mix it up with ChromaDB IDs.
     """)
     agent = create_agent(
-        model=llm,
+        model=llm,  # ty:ignore[invalid-argument-type]
         system_prompt=SystemMessage(system_prompt),
         tools=browsing_tools,
         response_format=AgentResponse,
