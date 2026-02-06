@@ -10,82 +10,118 @@ config:
 
 graph LR;
 
-    __start__([<p>__start__</p>]):::first
-
-    subgraph Knowledgebase_Sync
-        direction LR    
-
-        Knowledgebase_Sync__sync_cultpass_experiences{{Knowledgebase_MCP::sync_cultpass_experiences}}:::tool
-        Knowledgebase_Sync__sync_udahub_knowledgebase{{Knowledgebase_MCP::sync_udahub_knowledgebase}}:::tool
-    end
-
-    subgraph Validation
+    subgraph layout_container[" "]
         direction LR
 
-        Validation__create_udahub_user{{UDAHub_MCP::create_udahub_user}}:::tool
-        Validation__find_udahub_user{{UDAHub_MCP::find_udahub_user}}:::tool
-        Validation__get_cultpass_user{{Cultpass_MCP::get_cultpass_user}}:::tool
-    end
+        __start__([<p>__start__</p>]):::first
 
-    subgraph Enrichment
-        direction LR    
-    end
+        subgraph Knowledgebase_Sync
+            direction LR    
 
-    subgraph Supervisor
-        direction LR
-    end
+            Knowledgebase_Sync__sync_cultpass_experiences{{Knowledgebase_MCP::sync_cultpass_experiences}}:::tool
+            Knowledgebase_Sync__sync_udahub_knowledgebase{{Knowledgebase_MCP::sync_udahub_knowledgebase}}:::tool
+        end
 
-    subgraph Read_Message
-        direction LR
-    end
+        subgraph Validation
+            direction LR
 
-    subgraph Send_Message
-        direction LR    
-    end
+            Validation__create_udahub_user{{UDAHub_MCP::create_udahub_user}}:::tool
+            Validation__find_udahub_user{{UDAHub_MCP::find_udahub_user}}:::tool
+            Validation__get_cultpass_user{{Cultpass_MCP::get_cultpass_user}}:::tool
+        end
 
-    subgraph Reservation
-        direction LR
+        subgraph Enrichment
+            direction LR    
+        end
 
-        Reservation__get_cultpass_reservations{{Cultpass_MCP::get_cultpass_reservations}}:::tool
-        Reservation__cancel_cultpass_reservation{{Cultpass_MCP::cancel_cultpass_reservation}}:::tool
-        Reservation__make_cultpass_reservation{{Cultpass_MCP::make_cultpass_reservation}}:::tool
-    end
+        subgraph Supervisor
+            direction LR
+        end
 
-    subgraph Subscription
-        direction LR
+        subgraph Read_Message
+            direction LR
+        end
 
-        Subscription__get_cultpass_user{{UDAHub_MCP::get_cultpass_user}}:::tool
-        Subscription__cancel_cultpass_subscription{{UDAHub_MCP::cancel_cultpass_subscription}}:::tool
-        Subscription__reactivate_cultpass_subscription{{UDAHub_MCP::reactivate_cultpass_subscription}}:::tool
-        Subscription__upgrade_cultpass_subscription{{UDAHub_MCP::upgrade_cultpass_subscription}}:::tool
-    end
+        subgraph Send_Message
+            direction LR    
+        end
 
-    subgraph Browsing
-        direction LR
+        subgraph Reservation
+            direction LR
 
-        Browsing__query_cultpass_experiences{{UDAHub_MCP::query_cultpass_experiences}}:::tool
-        Browsing__get_cultpass_experience{{Cultpass_MCP::get_cultpass_experience}}:::tool
-    end
+            Reservation__get_cultpass_reservations{{Cultpass_MCP::get_cultpass_reservations}}:::tool
+            Reservation__cancel_cultpass_reservation{{Cultpass_MCP::cancel_cultpass_reservation}}:::tool
+            Reservation__make_cultpass_reservation{{Cultpass_MCP::make_cultpass_reservation}}:::tool
+        end
 
-    subgraph FAQ
-        direction LR
+        subgraph Subscription
+            direction LR
 
-        FAQ__query_udahub_knowledgebase{{UDAHub_MCP::query_udahub_knowledgebase}}:::tool
-    end
+            Subscription__get_cultpass_user{{UDAHub_MCP::get_cultpass_user}}:::tool
+            Subscription__cancel_cultpass_subscription{{UDAHub_MCP::cancel_cultpass_subscription}}:::tool
+            Subscription__reactivate_cultpass_subscription{{UDAHub_MCP::reactivate_cultpass_subscription}}:::tool
+            Subscription__upgrade_cultpass_subscription{{UDAHub_MCP::upgrade_cultpass_subscription}}:::tool
+        end
 
-    subgraph Escalate_to_Human
-        direction LR
-    end
+        subgraph Browsing
+            direction LR
 
-    subgraph Memorization
-        direction LR
+            Browsing__query_cultpass_experiences{{UDAHub_MCP::query_cultpass_experiences}}:::tool
+            Browsing__get_cultpass_experience{{Cultpass_MCP::get_cultpass_experience}}:::tool
+        end
 
-        Memorization__sync_cultpass_experiences{{Knowledgebase_MCP::sync_cultpass_experiences}}:::tool
-        Memorization__sync_udahub_knowledgebase{{Knowledgebase_MCP::sync_udahub_knowledgebase}}:::tool
-    end
+        subgraph FAQ
+            direction LR
 
-    subgraph Knowledgebase_Learning
-        direction LR    
+            FAQ__query_udahub_knowledgebase{{UDAHub_MCP::query_udahub_knowledgebase}}:::tool
+        end
+
+        subgraph Escalate_to_Human
+            direction LR
+        end
+
+        subgraph Memorization
+            direction LR
+
+            Memorization__sync_cultpass_experiences{{Knowledgebase_MCP::sync_cultpass_experiences}}:::tool
+            Memorization__sync_udahub_knowledgebase{{Knowledgebase_MCP::sync_udahub_knowledgebase}}:::tool
+        end
+
+        subgraph Knowledgebase_Learning
+            direction LR    
+        end
+        
+        __end__([<p>__end__</p>]):::last
+
+        __start__ --> Knowledgebase_Sync;
+        Knowledgebase_Sync --> Validation;
+        Validation --> Enrichment;
+        Enrichment --> Supervisor;
+
+        Supervisor -.-> Read_Message;
+        Read_Message --> Supervisor;
+
+        Supervisor -.-> Send_Message;
+        Send_Message --> Supervisor;
+
+        Supervisor -.-> Reservation;
+        Reservation --> Supervisor;
+
+        Supervisor -.-> Subscription;
+        Subscription --> Supervisor;
+
+        Supervisor -.-> Browsing;
+        Browsing --> Supervisor;
+
+        Supervisor -.-> FAQ;
+        FAQ --> Supervisor;
+
+        Supervisor -.-> Escalate_to_Human;
+        Escalate_to_Human --> Supervisor;
+
+        Supervisor --> Memorization;    
+        Memorization --> Knowledgebase_Learning;
+        Knowledgebase_Learning --> __end__;
     end
 
     subgraph Legend
@@ -96,43 +132,13 @@ graph LR;
         Legend__tool{{MCP Tool}}:::tool
     end
 
-    
-    __end__([<p>__end__</p>]):::last
-
-    __start__ --> Knowledgebase_Sync;
-    Knowledgebase_Sync --> Validation;
-    Validation --> Enrichment;
-    Enrichment --> Supervisor;
-
-    Supervisor -.-> Read_Message;
-    Read_Message --> Supervisor;
-
-    Supervisor -.-> Send_Message;
-    Send_Message --> Supervisor;
-
-    Supervisor -.-> Reservation;
-    Reservation --> Supervisor;
-
-    Supervisor -.-> Subscription;
-    Subscription --> Supervisor;
-
-    Supervisor -.-> Browsing;
-    Browsing --> Supervisor;
-
-    Supervisor -.-> FAQ;
-    FAQ --> Supervisor;
-
-    Supervisor -.-> Escalate_to_Human;
-    Escalate_to_Human --> Supervisor;
-
-    Supervisor --> Memorization;    
-    Memorization --> Knowledgebase_Learning;
-    Knowledgebase_Learning --> __end__;
-
 classDef tool font-size:90%,line-height:1,stroke:#ffae0c,stroke-width:2px,color:#ffae0c;
 
 classDef worker_agent stroke:#02b3e4,stroke-width:2px,color:#02b3e4;
 class Reservation,Subscription,FAQ,Browsing,Escalate_to_Human worker_agent;
+
+%% Make the outer layout subgraph invisible (no fill/border/label)
+style layout_container fill:transparent,stroke:transparent,stroke-width:0px;
 
 %%	classDef default fill:#f2f0ff,line-height:1.2
 %%	classDef first fill-opacity:0
