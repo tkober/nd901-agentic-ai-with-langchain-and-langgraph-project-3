@@ -110,7 +110,7 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
         .get_all()
     )
     response = await validate_user(
-        llm=llm,
+        llm=llm,  # ty:ignore[invalid-argument-type]
         tools=validation_tools,
         account_id=account_id,
         account_name=account.get("account_name", account_id),

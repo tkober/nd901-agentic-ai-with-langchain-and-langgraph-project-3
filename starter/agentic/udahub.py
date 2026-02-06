@@ -100,12 +100,12 @@ class UdaHubAgent:
         self.graph = self._build_graph()
         self.mcp_client = self._build_mcp_client(mcp_servers)
         self.llm = ChatOpenAI(
-            model=openai_model,
+            model=openai_model,  # ty:ignore[unknown-argument]
             temperature=0.0,
         )
 
     def _build_graph(self):
-        graph = StateGraph(UdaHubState)
+        graph = StateGraph(UdaHubState)  # ty:ignore[invalid-argument-type]
 
         # Define Nodes
         graph.add_node(node="knowledgebase_sync", action=knowledgebase_sync_node)

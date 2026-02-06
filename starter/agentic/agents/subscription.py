@@ -39,7 +39,7 @@ async def subscription_agent_node(
         User ID in the customers system: {external_user_id}
     """)
     agent = create_agent(
-        model=llm,
+        model=llm,  # ty:ignore[invalid-argument-type]
         system_prompt=SystemMessage(system_prompt),
         tools=subscription_tools,
         response_format=AgentResponse,

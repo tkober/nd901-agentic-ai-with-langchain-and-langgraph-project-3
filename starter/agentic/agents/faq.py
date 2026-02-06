@@ -32,7 +32,7 @@ async def faq_agent_node(state: UdaHubState, config: RunnableConfig) -> UdaHubSt
         - Always ask the user if the request is complete or if they need further assistance. Only if they confirm that they are done, set the 'task_complete' flag to true in your response.
     """)
     agent = create_agent(
-        model=llm,
+        model=llm,  # ty:ignore[invalid-argument-type]
         system_prompt=SystemMessage(system_prompt),
         tools=faq_tools,
         response_format=AgentResponse,
