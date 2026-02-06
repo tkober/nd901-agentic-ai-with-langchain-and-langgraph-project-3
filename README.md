@@ -176,7 +176,7 @@ For complex testing and benchmarking, there is the LlmChatInterface, which uses 
 
 ## Showcase
 
-There is a detaied showcase of the project in the form of a Jupyter notebook available here: [showcase.ipynb](showcase.ipynb).
+There is a detaied showcase of the project in the form of a Jupyter notebook available [here](starter/03_agentic_app.ipynb).
 
 ## Environment Variables
 
