@@ -14,6 +14,9 @@ graph LR;
 
     subgraph Knowledgebase_Sync
         direction LR    
+
+        Knowledgebase_Sync__sync_cultpass_experiences{{Knowledgebase_MCP::sync_cultpass_experiences}}:::tool
+        Knowledgebase_Sync__sync_udahub_knowledgebase{{Knowledgebase_MCP::sync_udahub_knowledgebase}}:::tool
     end
 
     subgraph Validation
@@ -90,7 +93,7 @@ graph LR;
 
         Legend__system_agent[System Agent]
         Legend__worker_agent[Worker Agent]:::worker_agent
-        Legend__tool{{Tool}}:::tool
+        Legend__tool{{MCP Tool}}:::tool
     end
 
     
