@@ -130,9 +130,11 @@ For debugging purposes, there is the ListChatInterface, which holds a list of pr
     from starter.agentic.chat_interface import ListChatInterface
 
     predefined_messages = [
-        "Hello, I would like to book an experience.",
-        "Can you recommend something for me?",
-        "I would like to cancel my subscription.",
+        "Hello, I want to make a reservation.",
+        "I would like to attend a tea ceremony in Kyoto.",
+        "The first one sounds great. When does it take place?",
+        "That works for me. Please book it.",
+        "That's it. Thank you!",
     ]
     chat_interface = ListChatInterface(predefined_messages)
 
