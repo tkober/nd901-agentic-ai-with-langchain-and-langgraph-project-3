@@ -90,9 +90,11 @@ wait
 | `KNOWLEDGE_BASE_MCP_PORT` | `8002` | Port for the Knowledgebase MCP server HTTP transport. |
 | `CULTPASS_MCP_PORT` | `8003` | Port for the Cultpass MCP server HTTP transport. |
 
-## Tracing
+## Tracing and Observability
 
-This project supports request/response tracing via **LangSmith**. If you set the environment variables below, LangChain/LangGraph will emit traces that you can inspect in the LangSmith UI.
+This project is instrumented with [LangSmith](https://langsmith.com) for tracing and observability. To enable tracing, you need to provide the necessary setup via environment variables.
+
+![alt text](images/langsmith_tracing.png)
 
 | Variable | Default | Description |
 | --- | --- | --- |
