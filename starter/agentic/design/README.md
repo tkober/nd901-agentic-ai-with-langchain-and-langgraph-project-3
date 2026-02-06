@@ -1,4 +1,4 @@
-# Agentic Graph
+# Agentic Workflow Graph
 
 ``` mermaid
 ---
@@ -11,6 +11,10 @@ config:
 graph LR;
 
     __start__([<p>__start__</p>]):::first
+
+    subgraph Knowledgebase_Sync
+        direction LR    
+    end
 
     subgraph Validation
         direction LR
@@ -77,6 +81,10 @@ graph LR;
         Memorization__sync_udahub_knowledgebase{{Knowledgebase_MCP::sync_udahub_knowledgebase}}:::tool
     end
 
+    subgraph Knowledgebase_Learning
+        direction LR    
+    end
+
     subgraph Legend
         direction TB
 
@@ -88,7 +96,8 @@ graph LR;
     
     __end__([<p>__end__</p>]):::last
 
-    __start__ --> Validation;
+    __start__ --> Knowledgebase_Sync;
+    Knowledgebase_Sync --> Validation;
     Validation --> Enrichment;
     Enrichment --> Supervisor;
 
@@ -114,7 +123,8 @@ graph LR;
     Escalate_to_Human --> Supervisor;
 
     Supervisor --> Memorization;    
-    Memorization --> __end__
+    Memorization --> Knowledgebase_Learning;
+    Knowledgebase_Learning --> __end__;
 
 classDef tool font-size:90%,line-height:1,stroke:#ffae0c,stroke-width:2px,color:#ffae0c;
 
@@ -130,11 +140,25 @@ class Reservation,Subscription,FAQ,Browsing,Escalate_to_Human worker_agent;
 ## System Agents
 
 The system agents form the framework of the conversation and orchestrate the flow between different worker agents and tools.
+Both system and worker agents determine the tools available to them based on tagging and metadata. This allows for a flexible and dynamic assignment of capabilities, ensuring that each agent can only access the tools that are relevant to its function.
+
+### `knowledgebase_sync`
+Synchronizes the knowledge base with the latest information from the customer's systems.
+This ensures that the agents always have up-to-date information to work with when handling user requests.
+
+| Tool Qualification ||
+| --- | --- |
+| Tags | `sync` |
 
 ### `validation`
 
 Ensures that the requested account is a valid customer of UDA-Hub and also validates the user's identity with the customer's system.
 It also ensures that there is a corresponding user account in the UDA Hub database, creating one if necessary.
+
+| Tool Qualification ||
+| --- | --- |
+| Tags | `validation` |
+| Metadata | `author=ACCOUNT_ID` |
 
 ### `enrichment`
 
@@ -158,6 +182,10 @@ It is used whenever the system has something to communicate back to the user and
 
 TODO
 
+### `knowledgebase_learning`
+
+TODO
+
 
 
 ## Worker Agents
@@ -172,20 +200,36 @@ The customer decides which worker agents are plugged in for use based on their n
 Answers common questions based on the knowledge base.
 This agent primarily uses read-only knowledge tools and asks follow-up questions when context is missing instead of making assumptions.
 
+| Tool Qualification ||
+| --- | --- |
+| Tags | `faq` |
+
 ### `reservation`
 
 Handles everything related to reservations (e.g., viewing, creating, canceling, changing).
 Before executing any action that changes state, the agent asks the user for explicit confirmation.
+
+| Tool Qualification ||
+| --- | --- |
+| Tags | `reservation` |
 
 ### `subscription`
 
 Works on subscription-related topics (e.g., checking status, canceling, reactivating, upgrading).
 As with reservations, state-changing actions are only executed after clear user confirmation.
 
+| Tool Qualification ||
+| --- | --- |
+| Tags | `subscription` |
+
 ### `browsing`
 
 Helps users browse a customer's offerings/experiences: search, details, comparisons, and recommendations.
 The agent can inform and provide context, but it does not perform bookings/reservations itself (that is handled by, e.g., `reservation`).
+
+| Tool Qualification ||
+| --- | --- |
+| Tags | `browsing` |
 
 ### `escalate_to_human`
 
