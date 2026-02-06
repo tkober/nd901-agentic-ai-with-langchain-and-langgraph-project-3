@@ -14,6 +14,10 @@ class ListChatInterface:
     messages: Sequence[str]
     _i: int = 0
 
+    def __init__(self, messages: Sequence[str]):
+        self.messages = messages
+        self._i = 0
+
     def next_message(self) -> Optional[str]:
         if self._i >= len(self.messages):
             return None
