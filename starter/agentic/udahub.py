@@ -18,6 +18,7 @@ from starter.agentic.agents.faq import faq_agent_node
 from starter.agentic.agents.reservation import reservation_agent_node
 from starter.agentic.agents.subscription import subscription_agent_node
 from starter.agentic.chat_interface import ChatInterface, ConsoleChatInterface
+from starter.agentic.mcp_tool_utils import McpToolFilter
 from langchain_openai import ChatOpenAI
 from IPython.display import Image
 from dotenv import load_dotenv
@@ -185,6 +186,20 @@ class UdaHubAgent:
     def print_graph_as_ascii(self):
         self.graph.get_graph().print_ascii()
 
+    async def synchronize_knowledge_base(self, tools: list):
+        sync_tools = (
+            McpToolFilter(tools)
+            .by_author("UDAHub Knowledge Base")
+            .by_tags(["sync"])
+            .get_all()
+        )
+        print("Synchronizing knowledge base...")
+        for tool in sync_tools:
+            print(f"...{tool.name}()")
+            await tool.ainvoke({})
+
+        print("Knowledge base synchronized.\n")
+
     async def start_chat(
         self,
         account_id: str,
@@ -194,8 +209,9 @@ class UdaHubAgent:
         chat_interface: ChatInterface = ConsoleChatInterface(),
     ):
         print("(You can quit the chat by sending an empty message)\n")
-        print("Starting UDA Hub chat...")
         tools = await self.mcp_client.get_tools()
+        await self.synchronize_knowledge_base(tools)
+        print("\nStarting UDA Hub chat...")
 
         state = UdaHubState(
             messages=[],
