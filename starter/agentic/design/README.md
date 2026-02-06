@@ -141,7 +141,7 @@ class Reservation,Subscription,FAQ,Browsing,Escalate_to_Human worker_agent;
 style layout_container fill:transparent,stroke:transparent,stroke-width:0px;
 
 %% Legend: no fill, dashed border
-style Legend fill:transparent,stroke:#fff,stroke-width:1px,stroke-dasharray:5 5;
+style Legend fill:transparent,stroke:#fff,stroke-width:1px;
 
 %%	classDef default fill:#f2f0ff,line-height:1.2
 %%	classDef first fill-opacity:0
