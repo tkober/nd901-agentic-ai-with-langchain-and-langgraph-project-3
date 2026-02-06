@@ -97,12 +97,13 @@ class UdaHubAgent:
         self,
         mcp_servers: McpServerList = McpServerList(),
         agents: list[UdaHubAgent] = DEFAULT_AGENT_SET,
+        openai_model: str = "gpt-4.1",
     ):
         self.agents = agents
         self.graph = self._build_graph()
         self.mcp_client = self._build_mcp_client(mcp_servers)
         self.llm = ChatOpenAI(
-            model="gpt-4.1",
+            model=openai_model,
             temperature=0.0,
         )
 
