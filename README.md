@@ -51,6 +51,11 @@ If it's not activated, you can activate it with the following command:
 source .venv/bin/activate
 ```
 
+### DB Setup
+
+Before running UDA-Hub, you need to set up the necessary databases by running the jupyter notebooks [01_external_db_setup.ipynb](starter/01_external_db_setup.ipynb) and [02_core_db_setup.ipynb](starter/02_core_db_setup.ipynb) located in the [starter](starter) folder.
+Afterwards you should find two SQLite database files in the [starter/data](starter/data) folder: `core/udahub.db` and `external/cultpass.db`.
+
 ## Running UDA-Hub
 
 In order to run UDA-Hub, you need to start the MCP servers (see [MCP Servers](#mcp-servers)) first so that the agtents have access to all the necessary tools.
