@@ -183,6 +183,14 @@ graph LR;
         Memorization__sync_udahub_knowledgebase{{Knowledgebase_MCP::sync_udahub_knowledgebase}}:::tool
     end
 
+    subgraph Legend
+        direction TB
+
+        Legend__system_agent[System Agent]
+        Legend__worker_agent[Worker Agent]:::worker_agent
+        Legend__tool{{Tool}}:::tool
+    end
+
     
     __end__([<p>__end__</p>]):::last
 
@@ -214,7 +222,10 @@ graph LR;
     Supervisor --> Memorization;    
     Memorization --> __end__
 
-classDef tool font-size:90%,line-height:1;
+classDef tool font-size:90%,line-height:1,stroke:#ffae0c,stroke-width:2px,color:#ffae0c;
+
+classDef worker_agent stroke:#02b3e4,stroke-width:2px,color:#02b3e4;
+class Reservation,Subscription,FAQ,Browsing,Escalate_to_Human worker_agent;
 
 %%	classDef default fill:#f2f0ff,line-height:1.2
 %%	classDef first fill-opacity:0
