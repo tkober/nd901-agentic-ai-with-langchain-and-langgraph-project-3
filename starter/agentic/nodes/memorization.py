@@ -3,7 +3,7 @@ from langchain.chat_models import BaseChatModel
 from langchain.agents import create_agent
 from langchain_core.messages import BaseMessage
 from starter.agentic.state import UdaHubState
-from starter.data.udahub_db import create_ticket
+from starter.data.udahub_db import create_ticket, add_messages_to_ticket
 from pydantic import BaseModel, Field
 from textwrap import dedent
 
@@ -50,14 +50,12 @@ async def memorization_node(state: UdaHubState, config: RunnableConfig) -> UdaHu
     ticket_id = config.get("configurable", {}).get("ticket_id")
     user = state.get("user", {})
     account_id = user.get("account_id", "")
-    external_user_id = user.get("external_user_id", "")
     udahub_user_id = user.get("uda_hub_user_id", "")
     llm = config.get("configurable", {}).get("llm")
-    loaded_messages_count = state.get("loaded_messages_count", 0)
 
+    messages = state.get("messages", [])
     if not ticket_id:
-        messages_to_store = state.get("messages", [])[loaded_messages_count:]
-        summary = await summarize_conversation(messages_to_store, llm)  # ty:ignore[invalid-argument-type]
+        summary = await summarize_conversation(messages, llm)  # ty:ignore[invalid-argument-type]
 
         ticket_id = create_ticket(
             account_id=account_id,
@@ -68,8 +66,12 @@ async def memorization_node(state: UdaHubState, config: RunnableConfig) -> UdaHu
             tags=summary.tags,
         )
 
+    loaded_messages_count = state.get("loaded_messages_count", 0)
+    messages_to_store = messages[loaded_messages_count:]
+    add_messages_to_ticket(ticket_id, messages_to_store)  # ty:ignore[invalid-argument-type]
+
     print(
-        f"You can contine this conversation anytime by providing the ticket ID: {ticket_id}\n"
+        f"\nYou can continue this conversation anytime by providing the ticket ID: {ticket_id}\n"
     )
 
     return state

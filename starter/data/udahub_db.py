@@ -1,7 +1,14 @@
 from sqlalchemy import select, create_engine
 from sqlalchemy.orm import Session
-from starter.data.models.udahub import User, Account, Ticket, TicketMetadata
+from starter.data.models.udahub import (
+    User,
+    Account,
+    Ticket,
+    TicketMetadata,
+    TicketMessage,
+)
 from dotenv import load_dotenv
+from langchain_core.messages import BaseMessage
 
 import os
 import uuid
@@ -124,3 +131,29 @@ def create_ticket(
         session.commit()
 
         return ticket_id
+
+
+def add_messages_to_ticket(ticket_id: str, messages: list[BaseMessage]):
+    engine = create_engine(UDAHUB_DB_PATH)
+    with Session(engine) as session:
+        ticket = session.execute(
+            select(Ticket).where(Ticket.ticket_id == ticket_id)
+        ).scalar_one_or_none()
+        if ticket is None:
+            raise ValueError(f"Ticket with ID {ticket_id} does not exist.")
+
+        existing_messages = ticket.messages or []
+
+        messages_to_add = [
+            TicketMessage(
+                message_id=message.id,
+                ticket_id=ticket_id,
+                role=message.type,
+                content=message.content,
+            )
+            for message in messages
+        ]
+
+        existing_messages.extend(messages_to_add)
+        ticket.messages = existing_messages
+        session.commit()
