@@ -76,7 +76,7 @@ wait
 
 ## Showcase
 
-
+There is a detaied showcase of the project in the form of a Jupyter notebook available here: [showcase.ipynb](showcase.ipynb).
 
 ## Environment Variables
 
