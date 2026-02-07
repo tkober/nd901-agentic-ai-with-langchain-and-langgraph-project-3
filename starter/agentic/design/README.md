@@ -89,6 +89,7 @@ graph LR;
 
         subgraph Knowledgebase_Learning
             direction LR    
+            Knowledgebase_Learning__query_udahub_knowledgebase{{UDAHub_MCP::query_udahub_knowledgebase}}:::tool
         end
         
         __end__([<p>__end__</p>]):::last
@@ -174,7 +175,8 @@ It also ensures that there is a corresponding user account in the UDA Hub databa
 
 ### `enrichment`
 
-TODO
+If there is a ticket_id provided in the configuration, then this agent retrieves the conversation history linked to that ticket and adds it to the current conversation context.
+This allows the system to "remember" past interactions and maintain continuity in the conversation, even if it happens over multiple sessions.
 
 ### `supervisor`
 
@@ -192,11 +194,15 @@ It is used whenever the system has something to communicate back to the user and
 
 ### `memorize`
 
-TODO
+Creates a ticket including a summary of the conversation and tags. Furthermore the entire conversation history is stored as messages linked to this ticket.
+If there is already an existing ticket, then only the new messages are added to that ticket instead.
 
 ### `knowledgebase_learning`
 
-TODO
+Analyzes the conversation tries to identify knoweledge relevant for future conversations and adds it to the knowledge base.
+This allows the system to continuously learn and improve over time based on real interactions with users.
+
+This agent is very critical and checks if the identified learnings are not yet part of the knowledge base before adding them, to avoid duplicates and ensure the quality of the knowledge base.
 
 
 
