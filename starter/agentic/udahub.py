@@ -237,6 +237,6 @@ if __name__ == "__main__":
                 account_id="cultpass",
                 exteranal_user_id="f556c0",
                 thread_id="test_thread",
-                ticket_id="ed5ff668-bb72-4577-92c0-c51c09642f54",
+                ticket_id=None,
             )
         )
