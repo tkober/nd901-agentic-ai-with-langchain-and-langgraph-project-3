@@ -21,6 +21,13 @@ UDA-Hub provisions an architecture that allows customers to plug into UDA-Hub an
 ![alt text](images/architecture.svg)
 
 
+### Agentic Workflow
+
+UDA-Hub provisions a framework for agentic workflows, tailored to the needs of the individual customer.
+It provides a solid foundation of core capabilities, and a wide range of predefined worker agents that can be plugged in and out based on the customer's needs.
+
+Be sure to check out the concrete [Agentic Workflow Graph for Cultpass Card](starter/agentic/design/README.md).
+
 ### Short-term Memory
 
 The UDA-Hub Chat Agent utilizes an in-memory checkpointing mechanism. That means as long as the session has not been terminated, it allows any user to continue a conversation without losing context even after terminating the chat.
