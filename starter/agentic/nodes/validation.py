@@ -130,27 +130,8 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
             "task": TaskContext(status="failed", error=f"{response.error_message}"),
         }
 
-    # Greet the user
-    messages = []
-    if response.full_name:
-        messages.append(
-            AIMessage(
-                f"Welcome {response.full_name}!\n"
-                f"I am UDA-Hub and I will be helping you on behalf of {account.get('account_name', account_id)}."
-            )
-        )
-
-    # If this is the first interaction on behalf of the requested account let the user know.
-    if response.uda_hub_user_created:
-        messages.append(
-            AIMessage(
-                "It seems like I am serving you the first time. I created a new UDA Hub user for you to keep context.\n"
-                f"Your user ID with me is {response.uda_hub_user_id}\n"
-            )
-        )
-
     return {
-        "messages": messages,
+        "messages": [],
         "is_validated": True,
         "has_pending_messages": True,
         "user": {
@@ -160,5 +141,6 @@ async def validation_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
             "external_user_id": external_user_id,
             "udahub_user_id": f"{response.uda_hub_user_id}",
             "full_name": f"{response.full_name}",
+            "udahub_user_created": response.uda_hub_user_created,
         },
     }

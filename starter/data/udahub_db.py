@@ -1,5 +1,5 @@
 from sqlalchemy import select, create_engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from starter.data.models.udahub import (
     User,
     Account,
@@ -148,7 +148,7 @@ def add_messages_to_ticket(ticket_id: str, messages: list[BaseMessage]):
             TicketMessage(
                 message_id=message.id,
                 ticket_id=ticket_id,
-                role=message.type,
+                role="user" if message.type == "human" else "ai",
                 content=message.content,
             )
             for message in messages
@@ -157,3 +157,35 @@ def add_messages_to_ticket(ticket_id: str, messages: list[BaseMessage]):
         existing_messages.extend(messages_to_add)
         ticket.messages = existing_messages
         session.commit()
+
+
+def get_messages_for_ticket(ticket_id: str) -> list[dict]:
+    engine = create_engine(UDAHUB_DB_PATH)
+    with Session(engine) as session:
+        ticket = session.execute(
+            select(Ticket).where(Ticket.ticket_id == ticket_id)
+        ).scalar_one_or_none()
+        if ticket is None:
+            raise ValueError(f"Ticket with ID {ticket_id} does not exist.")
+
+        messages = (
+            session.execute(
+                select(TicketMessage)
+                .where(TicketMessage.ticket_id == ticket_id)
+                .order_by(TicketMessage.created_at.asc())
+            )
+            .scalars()
+            .all()
+        )
+
+        result = [
+            {
+                "message_id": message.message_id,
+                "ticket_id": message.ticket_id,
+                "role": message.role.value,
+                "content": message.content,
+                "created_at": message.created_at.isoformat(),
+            }
+            for message in messages
+        ]
+        return result

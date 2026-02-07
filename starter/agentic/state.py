@@ -12,6 +12,7 @@ class UserContext(TypedDict, total=False):
     external_user_id: str
     udahub_user_id: str
     full_name: str
+    udahub_user_created: bool
 
 
 class TaskContext(TypedDict, total=False):
