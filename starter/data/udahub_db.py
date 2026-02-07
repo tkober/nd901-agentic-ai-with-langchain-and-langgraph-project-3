@@ -1,11 +1,12 @@
 from sqlalchemy import select, create_engine
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from starter.data.models.udahub import (
     User,
     Account,
     Ticket,
     TicketMetadata,
     TicketMessage,
+    Knowledge,
 )
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage
@@ -189,3 +190,20 @@ def get_messages_for_ticket(ticket_id: str) -> list[dict]:
             for message in messages
         ]
         return result
+
+
+def create_knowledge_entry(account_id: str, title: str, content: str, tags: str) -> str:
+    engine = create_engine(UDAHUB_DB_PATH)
+    with Session(engine) as session:
+        article_id = str(uuid.uuid4())
+        new_knowledge = Knowledge(
+            account_id=account_id,
+            article_id=article_id,
+            title=title,
+            content=content,
+            tags=tags,
+        )
+        session.add(new_knowledge)
+        session.commit()
+
+        return article_id

@@ -155,7 +155,7 @@ class UdaHubKnowledgeBaseQuery(KnowledgeBaseQuery):
 @mcp.tool(
     name="query_udahub_knowledgebase",
     description="Query the UdaHub knowledgebase for learnings related to a given customer.",
-    tags=set(["cultpass", "query", "knowledge", "faq"]),
+    tags=set(["cultpass", "query", "knowledge", "faq", "learning"]),
     meta={"author": "UDAHub Knowledge Base", "version": "1.0"},
     annotations={
         "readOnlyHint": True,
