@@ -1,5 +1,7 @@
 from pathlib import Path
 import shutil
+import pandas as pd
+import os
 
 
 def rollback_databases() -> None:
@@ -30,3 +32,16 @@ def rollback_databases() -> None:
 
     shutil.copyfile(cultpass_src, cultpass_dst)
     shutil.copyfile(udahub_src, udahub_dst)
+
+
+def load_udahub_table(table_name: str) -> pd.DataFrame:
+    """Load a table from the udahub.db into a DataFrame."""
+    UDAHUB_DB_PATH = os.getenv("UDAHUB_DB_PATH", "sqlite:///data/core/udahub.db")
+
+    db_path = Path(UDAHUB_DB_PATH)
+    if not db_path.exists():
+        raise FileNotFoundError(
+            f"UDAHUB_DB_PATH points to a non-existent file: {db_path}"
+        )
+
+    return pd.read_sql_query(f"SELECT * FROM {table_name}", con=UDAHUB_DB_PATH)
