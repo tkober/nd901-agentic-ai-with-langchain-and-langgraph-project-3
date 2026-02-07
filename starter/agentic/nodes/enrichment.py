@@ -10,20 +10,35 @@ async def enrichment_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
 
     ticket_id = config.get("configurable", {}).get("ticket_id", None)
     messages = []
+    loaded_messages_count = 0
+    last_printed_idx = -1
     if ticket_id:
         loaded_messages = get_messages_for_ticket(ticket_id)
 
+        ai_messages_count = 0
         for message in loaded_messages:
             if message.get("role") == "ai" and message.get("content"):
                 messages.append(AIMessage(content=message.get("content")))
+                ai_messages_count += 1
 
             if message.get("role") == "user" and message.get("content"):
-                messages.append(HumanMessage(content=message.get("content")))
+                messages.append(HumanMessage(content=f"> {message.get('content')}"))
 
         print(
             f"\nLoaded {len(messages)} messages from long-term memory for ticket_id {ticket_id}\n"
         )
-        state["loaded_messages_count"] = len(messages)
+        loaded_messages_count = len(messages)
+
+        # Print loaded messages
+        chat_interface = config.get("configurable", {}).get("chat_interface")
+
+        if not chat_interface:
+            raise Exception("No chat interface found")
+
+        for message in messages:
+            chat_interface.read_message(str(message.content))
+
+        last_printed_idx = len(messages) - 1
 
     else:
         user = state.get("user", {})
@@ -53,4 +68,6 @@ async def enrichment_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
     return {
         "messages": messages,
         "is_enriched": True,
+        "loaded_messages_count": loaded_messages_count,
+        "last_printed_idx": last_printed_idx,
     }
