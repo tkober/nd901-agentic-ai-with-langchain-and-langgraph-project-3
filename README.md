@@ -109,6 +109,15 @@ if __name__ == "__main__":
     )
 ```
 
+### Interactive Playground
+
+In order to kickstart playing around with the UDA-Hub Agent in the setup of Cultpass Card, simply run:
+
+```bash
+python -m starter.agentic.udahub
+```
+
+
 ### Chat Interface
 
 In order to allow simple interactions with the agent, three different chat interfaces are provided in the in [chat_interface.py](starter/agentic/chat_interface.py).
