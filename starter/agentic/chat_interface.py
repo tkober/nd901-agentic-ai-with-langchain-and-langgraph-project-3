@@ -23,6 +23,7 @@ class ListChatInterface:
             return None
         msg = self.messages[self._i]
         self._i += 1
+        print(f"> {msg}")
         return msg
 
     def read_message(self, message: str):

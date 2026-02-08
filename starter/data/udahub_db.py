@@ -10,6 +10,7 @@ from starter.data.models.udahub import (
 )
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage
+from pathlib import Path
 
 import os
 import uuid
@@ -17,11 +18,11 @@ import uuid
 
 load_dotenv()
 
-UDAHUB_DB_PATH = os.getenv("UDAHUB_DB_PATH", "sqlite:///starter/data/core/udahub.db")
+UDAHUB_DB_PATH = Path(os.getenv("UDAHUB_DB_PATH", "./data/core/udahub.db")).resolve()
 
 
 def create_user(account_id: str, external_user_id: str, user_name: str) -> dict:
-    engine = create_engine(UDAHUB_DB_PATH)
+    engine = create_engine(f"sqlite:///{UDAHUB_DB_PATH}")
     with Session(engine) as session:
         new_user = User(
             user_id=str(uuid.uuid4()),
@@ -43,7 +44,7 @@ def create_user(account_id: str, external_user_id: str, user_name: str) -> dict:
 
 
 def get_user_by_id(user_id: str) -> dict | None:
-    engine = create_engine(UDAHUB_DB_PATH)
+    engine = create_engine(f"sqlite:///{UDAHUB_DB_PATH}")
     with Session(engine) as session:
         statement = select(User).where(User.user_id == user_id)
         result = session.execute(statement).scalar_one_or_none()
@@ -64,7 +65,7 @@ def get_user_by_id(user_id: str) -> dict | None:
 def get_user_by_account_and_external_id(
     account_id: str, external_user_id: str
 ) -> dict | None:
-    engine = create_engine(UDAHUB_DB_PATH)
+    engine = create_engine(f"sqlite:///{UDAHUB_DB_PATH}")
     with Session(engine) as session:
         statement = select(User).where(
             User.account_id == account_id,
@@ -86,7 +87,7 @@ def get_user_by_account_and_external_id(
 
 
 def get_account_by_id(account_id: str) -> dict | None:
-    engine = create_engine(UDAHUB_DB_PATH)
+    engine = create_engine(f"sqlite:///{UDAHUB_DB_PATH}")
     with Session(engine) as session:
         statement = select(Account).where(Account.account_id == account_id)
         result = session.execute(statement).scalar_one_or_none()
@@ -111,7 +112,7 @@ def create_ticket(
     status: str,
     tags: list[str],
 ) -> str:
-    engine = create_engine(UDAHUB_DB_PATH)
+    engine = create_engine(f"sqlite:///{UDAHUB_DB_PATH}")
     with Session(engine) as session:
         ticket_id = str(uuid.uuid4())
         new_ticket = Ticket(
@@ -135,7 +136,7 @@ def create_ticket(
 
 
 def add_messages_to_ticket(ticket_id: str, messages: list[BaseMessage]):
-    engine = create_engine(UDAHUB_DB_PATH)
+    engine = create_engine(f"sqlite:///{UDAHUB_DB_PATH}")
     with Session(engine) as session:
         ticket = session.execute(
             select(Ticket).where(Ticket.ticket_id == ticket_id)
@@ -161,7 +162,7 @@ def add_messages_to_ticket(ticket_id: str, messages: list[BaseMessage]):
 
 
 def get_messages_for_ticket(ticket_id: str) -> list[dict]:
-    engine = create_engine(UDAHUB_DB_PATH)
+    engine = create_engine(f"sqlite:///{UDAHUB_DB_PATH}")
     with Session(engine) as session:
         ticket = session.execute(
             select(Ticket).where(Ticket.ticket_id == ticket_id)
@@ -193,7 +194,7 @@ def get_messages_for_ticket(ticket_id: str) -> list[dict]:
 
 
 def create_knowledge_entry(account_id: str, title: str, content: str, tags: str) -> str:
-    engine = create_engine(UDAHUB_DB_PATH)
+    engine = create_engine(f"sqlite:///{UDAHUB_DB_PATH}")
     with Session(engine) as session:
         article_id = str(uuid.uuid4())
         new_knowledge = Knowledge(

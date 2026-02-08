@@ -90,6 +90,11 @@ DEFAULT_AGENT_SET = [
 ]
 
 
+class ChatContinuationInfo(TypedDict):
+    thread_id: str
+    ticket_id: Optional[str]
+
+
 class UdaHubAgent:
     def __init__(
         self,
@@ -187,7 +192,7 @@ class UdaHubAgent:
     async def start_chat(
         self,
         account_id: str,
-        exteranal_user_id: str,
+        external_user_id: str,
         ticket_id: Optional[str] = None,
         thread_id: str = str(uuid.uuid4()),
         chat_interface: ChatInterface = ConsoleChatInterface(),
@@ -200,7 +205,7 @@ class UdaHubAgent:
             messages=[],
             user=UserContext(
                 account_id=account_id,
-                external_user_id=exteranal_user_id,
+                external_user_id=external_user_id,
             ),
             need_user_input=True,
         )
@@ -222,6 +227,11 @@ class UdaHubAgent:
         print(f"Thread ID: {thread_id}\n")
         state = await self.graph.ainvoke(state, config=config)
 
+        return ChatContinuationInfo(
+            thread_id=thread_id,
+            ticket_id=state.get("ticket_for_continuation"),
+        )
+
 
 if __name__ == "__main__":
     mcp_servers = McpServerList().add_connection(
@@ -235,7 +245,7 @@ if __name__ == "__main__":
         asyncio.run(
             agent.start_chat(
                 account_id="cultpass",
-                exteranal_user_id="f556c0",
+                external_user_id="f556c0",
                 thread_id="test_thread",
                 ticket_id=None,
             )

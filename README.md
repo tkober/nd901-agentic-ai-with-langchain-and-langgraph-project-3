@@ -104,7 +104,7 @@ if __name__ == "__main__":
     # Start the agent's chat loop
     agent.start_chat(
         account_id="cultpass",
-        exteranal_user_id="f556c0",
+        external_user_id="f556c0",
         thread_id="USER_THREAD_ID",
     )
 ```
@@ -133,7 +133,7 @@ The most basic one is a simple command line interface, which allows you to send 
     # Start the agent's chat loop
     agent.start_chat(
         account_id="cultpass",
-        exteranal_user_id="f556c0",
+        external_user_id="f556c0",
         thread_id="USER_THREAD_ID",
         chat_interface=chat_interface,
     )
@@ -157,7 +157,7 @@ For debugging purposes, there is the ListChatInterface, which holds a list of pr
     # Start the agent's chat loop
     agent.start_chat(
         account_id="cultpass",
-        exteranal_user_id="f556c0",
+        external_user_id="f556c0",
         thread_id="USER_THREAD_ID",
         chat_interface=chat_interface,
     )
@@ -184,7 +184,7 @@ For complex testing and benchmarking, there is the LlmChatInterface, which uses 
     # Start the agent's chat loop
     agent.start_chat(
         account_id="cultpass",
-        exteranal_user_id="f556c0",
+        external_user_id="f556c0",
         thread_id="USER_THREAD_ID",
         chat_interface=chat_interface,
     )

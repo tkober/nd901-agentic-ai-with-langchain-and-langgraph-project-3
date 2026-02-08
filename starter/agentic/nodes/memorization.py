@@ -50,7 +50,7 @@ async def memorization_node(state: UdaHubState, config: RunnableConfig) -> UdaHu
     ticket_id = config.get("configurable", {}).get("ticket_id")
     user = state.get("user", {})
     account_id = user.get("account_id", "")
-    udahub_user_id = user.get("uda_hub_user_id", "")
+    udahub_user_id = user.get("udahub_user_id", "")
     llm = config.get("configurable", {}).get("llm")
 
     messages = state.get("messages", [])
@@ -74,4 +74,7 @@ async def memorization_node(state: UdaHubState, config: RunnableConfig) -> UdaHu
         f"\nYou can continue this conversation anytime by providing the ticket ID: {ticket_id}\n"
     )
 
-    return state
+    return {
+        "messages": [],
+        "ticket_for_continuation": ticket_id,
+    }

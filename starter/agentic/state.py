@@ -33,3 +33,4 @@ class UdaHubState(MessagesState, total=False):
     worker: Optional[str]
     priority: Optional[Priority]
     loaded_messages_count: Optional[int]
+    ticket_for_continuation: Optional[str]
