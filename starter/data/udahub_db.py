@@ -1,5 +1,6 @@
 from sqlalchemy import select, create_engine
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.sqlite import insert
 from starter.data.models.udahub import (
     User,
     Account,
@@ -135,29 +136,53 @@ def create_ticket(
         return ticket_id
 
 
+# def add_messages_to_ticket(ticket_id: str, messages: list[BaseMessage]):
+#     engine = create_engine(f"sqlite:///{UDAHUB_DB_PATH}")
+#     with Session(engine) as session:
+#         ticket = session.execute(
+#             select(Ticket).where(Ticket.ticket_id == ticket_id)
+#         ).scalar_one_or_none()
+#         if ticket is None:
+#             raise ValueError(f"Ticket with ID {ticket_id} does not exist.")
+
+#         existing_messages = ticket.messages or []
+
+#         messages_to_add = [
+#             TicketMessage(
+#                 message_id=message.id,
+#                 ticket_id=ticket_id,
+#                 role="user" if message.type == "human" else "ai",
+#                 content=message.content,
+#             )
+#             for message in messages
+#         ]
+
+#         existing_messages.extend(messages_to_add)
+#         ticket.messages = existing_messages
+#         session.commit()
+
+
 def add_messages_to_ticket(ticket_id: str, messages: list[BaseMessage]):
     engine = create_engine(f"sqlite:///{UDAHUB_DB_PATH}")
     with Session(engine) as session:
-        ticket = session.execute(
-            select(Ticket).where(Ticket.ticket_id == ticket_id)
-        ).scalar_one_or_none()
-        if ticket is None:
-            raise ValueError(f"Ticket with ID {ticket_id} does not exist.")
-
-        existing_messages = ticket.messages or []
-
-        messages_to_add = [
-            TicketMessage(
+        for message in messages:
+            stmt = insert(TicketMessage).values(
                 message_id=message.id,
                 ticket_id=ticket_id,
                 role="user" if message.type == "human" else "ai",
                 content=message.content,
             )
-            for message in messages
-        ]
 
-        existing_messages.extend(messages_to_add)
-        ticket.messages = existing_messages
+            stmt = stmt.on_conflict_do_update(
+                index_elements=["message_id"],
+                set_={
+                    "content": message.content,
+                    "role": "user" if message.type == "human" else "ai",
+                },
+            )
+
+            session.execute(stmt)
+
         session.commit()
 
 

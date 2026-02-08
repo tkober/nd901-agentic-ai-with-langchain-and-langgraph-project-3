@@ -53,6 +53,10 @@ async def memorization_node(state: UdaHubState, config: RunnableConfig) -> UdaHu
     udahub_user_id = user.get("udahub_user_id", "")
     llm = config.get("configurable", {}).get("llm")
 
+    ticket_for_continuation = state.get("ticket_for_continuation", None)
+    if ticket_for_continuation:
+        ticket_id = ticket_for_continuation
+
     messages = state.get("messages", [])
     if not ticket_id:
         summary = await summarize_conversation(messages, llm)  # ty:ignore[invalid-argument-type]

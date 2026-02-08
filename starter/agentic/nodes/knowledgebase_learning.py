@@ -74,12 +74,12 @@ async def knowledgebase_learning_node(
     analysis_result: KnowledgeExtractionResult = response["structured_response"]
 
     if analysis_result.new_knowledge:
-        print(analysis_result)
-        create_knowledge_entry(
+        knowledge_id = create_knowledge_entry(
             account_id=account_id,
             title=analysis_result.title,
             content=analysis_result.content,
             tags=analysis_result.tags,
         )
+        print(f"New knowledge entry created with ID: {knowledge_id}")
 
     return state

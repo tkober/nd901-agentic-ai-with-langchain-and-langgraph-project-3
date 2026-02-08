@@ -4,6 +4,7 @@ from langchain.agents import create_agent
 from langchain_core.messages import SystemMessage
 from pydantic import BaseModel, Field
 from starter.agentic.state import Priority
+from textwrap import dedent
 
 
 class SupervisorAnalysis(BaseModel):
@@ -42,7 +43,8 @@ async def supervisor_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
 
     agent = create_agent(
         model=llm,  # ty:ignore[invalid-argument-type]
-        system_prompt=SystemMessage(f"""
+        system_prompt=SystemMessage(
+            dedent(f"""
         You are a supervisor agent inside a helpdesk chatbot for {account_name} (account_id={account_id}):
         {account_description}
 
@@ -58,7 +60,8 @@ async def supervisor_node(state: UdaHubState, config: RunnableConfig) -> UdaHubS
         Rules:
         - If the priority is critical always assign "escalate_to_human" as the next agent.
         - If you cannot find a suitable agent assign "escalate_to_human".
-        """),
+        """)
+        ),
         response_format=SupervisorAnalysis,
     )
     result = await agent.ainvoke(

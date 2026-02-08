@@ -30,6 +30,7 @@ async def reservation_agent_node(
 
         Rules:
         - Use the tools instead of the LLMs knowledge to answer questions.
+        - When printing reservation information, also print the reservation ID.
         - If you need more information from the user, ask the user for it instead of making assumptions.
         - If you cannot find what the users looking for, say that you are sorry and that you cannot help with this request.
         - If the user askes to do something that is outside of your capabilities, set the 'request_handoff' flag to true in your response.

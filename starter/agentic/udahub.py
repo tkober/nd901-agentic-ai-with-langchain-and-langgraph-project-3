@@ -208,6 +208,7 @@ class UdaHubAgent:
                 external_user_id=external_user_id,
             ),
             need_user_input=True,
+            terminate_chat=False,
         )
         available_agents = {
             agent["name"]: agent["description"] for agent in self.agents
