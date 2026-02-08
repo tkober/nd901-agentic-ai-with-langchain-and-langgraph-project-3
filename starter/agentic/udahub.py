@@ -245,7 +245,7 @@ if __name__ == "__main__":
     for i in range(1):
         asyncio.run(
             agent.start_chat(
-                account_id="cultpass",
+                account_id="cultpass_fail",
                 external_user_id="f556c0",
                 thread_id="test_thread",
                 ticket_id=None,
